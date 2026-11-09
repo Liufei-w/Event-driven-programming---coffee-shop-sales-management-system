@@ -13,7 +13,7 @@ public class ConnectDB {
 	}
 
 	public void connect() {
-		String url = "jdbc:sqlserver://localhost:1433;databaseName=PetBite;encrypt=true;trustServerCertificate=true";
+		String url = "jdbc:sqlserver://localhost:1433;databaseName=EvergreenDB;encrypt=true;trustServerCertificate=true";
 		String user = "sa";
 		String password = "sapassword";
 
