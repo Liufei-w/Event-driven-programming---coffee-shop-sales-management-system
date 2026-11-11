@@ -1,0 +1,63 @@
+package view;
+
+import javax.swing.*;
+import java.awt.*;
+
+public class TrangChuFrame extends JFrame {
+    private JPanel pnlContainer;
+    private CardLayout cardLayout;
+
+    public TrangChuFrame() {
+        setTitle("Hệ Thống Quản Lý Quán Cà Phê - Evergreen");
+        setSize(1300, 750);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+
+        //Sidebar
+        JPanel pnlMenu = new JPanel();
+        pnlMenu.setLayout(new GridLayout(10, 1, 5, 5));
+        
+        JButton btnTrangChu = new JButton("Trang Chủ");
+        JButton btnLapHoaDon = new JButton("Lập Hóa Đơn");
+        JButton btnQuanLyMon = new JButton("Quản Lý Món");
+        JButton btnThongKe = new JButton("Thống Kê Doanh Thu");
+
+        pnlMenu.add(btnTrangChu);
+        pnlMenu.add(btnLapHoaDon);
+        pnlMenu.add(btnQuanLyMon);
+        pnlMenu.add(btnThongKe);
+
+        add(pnlMenu, BorderLayout.WEST);
+
+        //Khu vực hiển thị nội dung thay đổi ở giữa
+        cardLayout = new CardLayout();
+        pnlContainer = new JPanel(cardLayout);
+
+        JPanel pnlWelcome = new JPanel(new GridBagLayout());
+        JLabel lblWelcome = new JLabel("<html><h2>Chào mừng đến với Hệ thống Quản lý Quán Cà Phê Evergreen</h2></html>");
+        pnlWelcome.add(lblWelcome);
+        
+        GiaoDienBanHang pnlBanHang = new GiaoDienBanHang();
+        // JPanel pnlMon = new GiaoDienQuanLyMon(); // Màn hình của Thành viên khác
+
+        pnlContainer.add(pnlWelcome, "TRANG_CHU");
+        pnlContainer.add(pnlBanHang, "LAP_HOA_DON");
+        // pnlContainer.add(pnlMon, "QUAN_LY_MON");
+
+        add(pnlContainer, BorderLayout.CENTER);
+
+        // Đăng ký sự kiện bấm nút trên Menu để chuyển màn hình
+        btnTrangChu.addActionListener(e -> cardLayout.show(pnlContainer, "TRANG_CHU"));
+        btnLapHoaDon.addActionListener(e -> cardLayout.show(pnlContainer, "LAP_HOA_DON"));
+        
+        btnQuanLyMon.addActionListener(e -> {
+            // cardLayout.show(pnlContainer, "QUAN_LY_MON");
+        });
+        
+        cardLayout.show(pnlContainer, "TRANG_CHU");
+    }
+
+    public static void main(String[] args) {
+        new TrangChuFrame().setVisible(true);
+    }
+}
