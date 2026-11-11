@@ -48,19 +48,19 @@ public class Mon_DAO {
         }
         return danhSachMon;
     }
-
     /**
-     * Lấy danh sách món ăn theo mã loại món
+     * Lấy danh sách món ăn theo TÊN loại món
      */
-    public List<Mon> layMonTheoLoai(String maLoaiTim) {
+    public List<Mon> layMonTheoLoai(String tenLoaiTim) {
         List<Mon> danhSachMon = new ArrayList<>();
+        // Sửa điều kiện WHERE thành l.tenLoai = ? thay vì m.maLoai = ?
         String sql = "SELECT m.*, l.tenLoai, l.moTa FROM Mon m " +
                      "JOIN LoaiMon l ON m.maLoai = l.maLoai " +
-                     "WHERE m.maLoai = ?";
+                     "WHERE l.tenLoai = ?";
         try {
             Connection con = ConnectDB.getConnection();
             PreparedStatement stmt = con.prepareStatement(sql);
-            stmt.setString(1, maLoaiTim);
+            stmt.setString(1, tenLoaiTim);
             ResultSet rs = stmt.executeQuery();
             
             while (rs.next()) {
@@ -83,5 +83,39 @@ public class Mon_DAO {
             e.printStackTrace();
         }
         return danhSachMon;
+    }
+    
+    /**
+     * Lấy thông tin chi tiết một món ăn theo mã món
+     */
+    public Mon layMonTheoMa(String maMonTim) {
+        String sql = "SELECT m.*, l.tenLoai, l.moTa FROM Mon m " +
+                     "JOIN LoaiMon l ON m.maLoai = l.maLoai " +
+                     "WHERE m.maMon = ?";
+        try {
+            Connection con = ConnectDB.getConnection();
+            PreparedStatement stmt = con.prepareStatement(sql);
+            stmt.setString(1, maMonTim);
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                String maMon = rs.getString("maMon");
+                String tenMon = rs.getString("tenMon");
+                String donViTinh = rs.getString("donViTinh");
+                String trangThai = rs.getString("trangThai");
+                BigDecimal giaNhap = rs.getBigDecimal("giaNhap");
+                BigDecimal loiNhuan = rs.getBigDecimal("loiNhuan");
+
+                String maLoai = rs.getString("maLoai");
+                String tenLoai = rs.getString("tenLoai");
+                String moTa = rs.getString("moTa");
+                LoaiMon loaiMon = new LoaiMon(maLoai, tenLoai, moTa);
+
+                return new Mon(maMon, tenMon, donViTinh, trangThai, giaNhap, loiNhuan, loaiMon);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
