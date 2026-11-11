@@ -3,11 +3,11 @@ package view;
 import javax.swing.*;
 import java.awt.*;
 
-public class TrangChuFrame extends JFrame {
+public class main extends JFrame {
     private JPanel pnlContainer;
     private CardLayout cardLayout;
 
-    public TrangChuFrame() {
+    public main() {
         setTitle("Hệ Thống Quản Lý Quán Cà Phê - Evergreen");
         setSize(1300, 750);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -58,6 +58,6 @@ public class TrangChuFrame extends JFrame {
     }
 
     public static void main(String[] args) {
-        new TrangChuFrame().setVisible(true);
+        new main().setVisible(true);
     }
 }
