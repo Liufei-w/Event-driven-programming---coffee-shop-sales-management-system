@@ -13,8 +13,8 @@ import java.util.List;
 
 public class HoaDon_DAO {
 
-    /**
-     * Quy tắc: HD + [YYMMDD] + [XXX]
+	/**
+     * Phát sinh mã hóa đơn tự động
      */
     public String phatSinhMaHD() {
         String maHDMoi = "";
@@ -22,7 +22,6 @@ public class HoaDon_DAO {
         String datePart = now.format(DateTimeFormatter.ofPattern("yyMMdd"));
         String prefix = "HD" + datePart;
 
-        // Câu lệnh SQL tìm mã hóa đơn lớn nhất trong ngày hiện tại
         String sql = "SELECT TOP 1 maHD FROM HoaDon WHERE maHD LIKE ? ORDER BY maHD DESC";
         
         try {
@@ -34,13 +33,13 @@ public class HoaDon_DAO {
             int stt = 1;
             if (rs.next()) {
                 String maCu = rs.getString("maHD");
-                // Cắt phần số thứ tự phía sau (3 ký tự cuối) rồi cộng lên 1
                 String sttStr = maCu.substring(prefix.length());
                 stt = Integer.parseInt(sttStr) + 1;
             }
-            // Ghép lại thành mã mới (Ví dụ: HD261110 + 001 -> HD261110001)
             maHDMoi = prefix + String.format("%03d", stt);
             
+            rs.close();
+            stmt.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -48,75 +47,70 @@ public class HoaDon_DAO {
     }
 
     /**
-     * TẠO HÓA ĐƠN MỚI
+     * Tạo hóa đơn mới kèm theo danh sách chi tiết món và cập nhật trạng thái bàn
      */
     public boolean taoHoaDon(HoaDon hd) {
-        Connection con = null;
-        PreparedStatement stmtHD = null;
-        PreparedStatement stmtCTHD = null;
-        PreparedStatement stmtBan = null;
-
         String sqlHD = "INSERT INTO HoaDon (maHD, ngayLap, phuongThucThanhToan, trangThai, tienGiam, thueVAT, maNV, maBan, maKH, maKM) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         String sqlCTHD = "INSERT INTO ChiTietHoaDon (maHD, maMon, soLuong, donGia, ghiChu) VALUES (?, ?, ?, ?, ?)";
         String sqlUpdateBan = "UPDATE Ban SET trangThai = N'Đang phục vụ' WHERE maBan = ?";
 
+        Connection con = null;
         try {
             con = ConnectDB.getConnection();
-            con.setAutoCommit(false);
+            con.setAutoCommit(false); // Bắt đầu Transaction
 
-         // Lưu thông tin chung của Hóa đơn
-            stmtHD = con.prepareStatement(sqlHD);
-            stmtHD.setString(1, hd.getMaHD());
-            stmtHD.setTimestamp(2, Timestamp.valueOf(hd.getNgayLap() != null ? hd.getNgayLap() : LocalDateTime.now()));
-            stmtHD.setString(3, hd.getPhuongThucThanhToan() != null ? hd.getPhuongThucThanhToan() : "Tiền mặt");
-            stmtHD.setString(4, hd.getTrangThai() != null ? hd.getTrangThai() : "Chưa thanh toán");
-            stmtHD.setBigDecimal(5, hd.getTienGiam() != null ? hd.getTienGiam() : BigDecimal.ZERO);
-            stmtHD.setBigDecimal(6, hd.getThueVAT() != null ? hd.getThueVAT() : BigDecimal.valueOf(0.10));
-            stmtHD.setString(7, hd.getNhanVien() != null ? hd.getNhanVien().getMaNV() : null);
-            stmtHD.setString(8, hd.getBan() != null ? hd.getBan().getMaBan() : null);
-            stmtHD.setString(9, hd.getKhachHang() != null ? hd.getKhachHang().getMaKH() : null);
-            stmtHD.setString(10, hd.getKhuyenMai() != null ? hd.getKhuyenMai().getMaKM() : null);
-            stmtHD.executeUpdate();
-            stmtHD.executeUpdate();
-
-            //Lưu từng món ăn trong danh sách chi tiết hóa đơn
-            stmtCTHD = con.prepareStatement(sqlCTHD);
-            for (ChiTietHoaDon cthd : hd.getDanhSachChiTiet()) {
-                stmtCTHD.setString(1, hd.getMaHD());
-                stmtCTHD.setString(2, cthd.getMon().getMaMon());
-                stmtCTHD.setInt(3, cthd.getSoLuong());
-                stmtCTHD.setBigDecimal(4, cthd.getDonGia());
-                stmtCTHD.setString(5, cthd.getGhiChu());
-                stmtCTHD.addBatch(); // Gom nhóm lệnh để chạy nhanh hơn
+            // 1. Lưu hóa đơn
+            try (PreparedStatement stmtHD = con.prepareStatement(sqlHD)) {
+                stmtHD.setString(1, hd.getMaHD());
+                stmtHD.setTimestamp(2, Timestamp.valueOf(hd.getNgayLap() != null ? hd.getNgayLap() : LocalDateTime.now()));
+                stmtHD.setString(3, hd.getPhuongThucThanhToan() != null ? hd.getPhuongThucThanhToan() : "Tiền mặt");
+                stmtHD.setString(4, hd.getTrangThai() != null ? hd.getTrangThai() : "Chưa thanh toán");
+                stmtHD.setBigDecimal(5, hd.getTienGiam() != null ? hd.getTienGiam() : BigDecimal.ZERO);
+                stmtHD.setBigDecimal(6, hd.getThueVAT() != null ? hd.getThueVAT() : BigDecimal.valueOf(0.10));
+                stmtHD.setString(7, hd.getNhanVien() != null ? hd.getNhanVien().getMaNV() : null);
+                stmtHD.setString(8, hd.getBan() != null ? hd.getBan().getMaBan() : null);
+                stmtHD.setString(9, hd.getKhachHang() != null ? hd.getKhachHang().getMaKH() : null);
+                stmtHD.setString(10, hd.getKhuyenMai() != null ? hd.getKhuyenMai().getMaKM() : null);
+                stmtHD.executeUpdate();
             }
-            stmtCTHD.executeBatch();
 
-            //Cập nhật trạng thái bàn thành "Đang phục vụ" (nếu khách ngồi tại bàn)
+            // 2. Lưu chi tiết hóa đơn (nếu có)
+            if (hd.getDanhSachChiTiet() != null && !hd.getDanhSachChiTiet().isEmpty()) {
+                try (PreparedStatement stmtCTHD = con.prepareStatement(sqlCTHD)) {
+                    for (ChiTietHoaDon cthd : hd.getDanhSachChiTiet()) {
+                        stmtCTHD.setString(1, hd.getMaHD());
+                        stmtCTHD.setString(2, cthd.getMon().getMaMon());
+                        stmtCTHD.setInt(3, cthd.getSoLuong());
+                        stmtCTHD.setBigDecimal(4, cthd.getDonGia());
+                        stmtCTHD.setString(5, cthd.getGhiChu());
+                        stmtCTHD.addBatch();
+                    }
+                    stmtCTHD.executeBatch();
+                }
+            }
+
+            // 3. Cập nhật trạng thái bàn thành "Đang phục vụ"
             if (hd.getBan() != null && hd.getBan().getMaBan() != null) {
-                stmtBan = con.prepareStatement(sqlUpdateBan);
-                stmtBan.setString(1, hd.getBan().getMaBan());
-                stmtBan.executeUpdate();
+                try (PreparedStatement stmtBan = con.prepareStatement(sqlUpdateBan)) {
+                    stmtBan.setString(1, hd.getBan().getMaBan());
+                    stmtBan.executeUpdate();
+                }
             }
 
-            con.commit(); // Xác nhận mọi thứ thành công
+            con.commit(); // Xác nhận thành công
             return true;
             
         } catch (SQLException e) {
             e.printStackTrace();
             if (con != null) {
-                try {
-                    con.rollback(); // Nếu có lỗi thì hoàn tác lại CSDL
-                } catch (SQLException ex) {
-                    ex.printStackTrace();
-                }
+                try { con.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
             }
             return false;
         } finally {
             try {
-                if (stmtHD != null) stmtHD.close();
-                if (stmtCTHD != null) stmtCTHD.close();
-                if (stmtBan != null) stmtBan.close();
-                if (con != null) con.setAutoCommit(true);
+                if (con != null) {
+                    con.setAutoCommit(true);
+                }
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -124,37 +118,57 @@ public class HoaDon_DAO {
     }
 
     /**
-     * LẤY DANH SÁCH TẤT CẢ HÓA ĐƠN
-     * Phục vụ cho màn hình "Tra cứu hóa đơn" và "Quản lý hóa đơn".
+     * Tìm mã hóa đơn chưa thanh toán của một bàn cụ thể
      */
-    public List<HoaDon> layTatCaHoaDon() {
-        List<HoaDon> danhSachHD = new ArrayList<>();
+    public String layMaHDChuaThanhToanTheoBan(String maBan) {
+        String maHD = null;
+        // Thêm sắp xếp ORDER BY ngayLap DESC để nếu có nhiều cái cũ, nó chỉ lấy hóa đơn mới nhất trong ngày
+        String sql = "SELECT TOP 1 maHD FROM HoaDon WHERE maBan = ? AND trangThai = N'Chưa thanh toán' ORDER BY ngayLap DESC";
+        try {
+            Connection con = ConnectDB.getConnection();
+            PreparedStatement stmt = con.prepareStatement(sql);
+            stmt.setString(1, maBan);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                maHD = rs.getString("maHD");
+            }
+            rs.close();
+            stmt.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return maHD;
+    }
+
+    /**
+     * Lấy thông tin một hóa đơn theo mã
+     */
+    public HoaDon layHoaDonTheoMa(String maHD) {
+        HoaDon hd = null;
         String sql = "SELECT h.*, n.tenNV, b.tenBan, k.tenKH, km.tenKM " +
                      "FROM HoaDon h " +
                      "JOIN NhanVien n ON h.maNV = n.maNV " +
                      "LEFT JOIN Ban b ON h.maBan = b.maBan " +
                      "LEFT JOIN KhachHang k ON h.maKH = k.maKH " +
                      "LEFT JOIN KhuyenMai km ON h.maKM = km.maKM " +
-                     "ORDER BY h.ngayLap DESC";
+                     "WHERE h.maHD = ?";
         try {
             Connection con = ConnectDB.getConnection();
-            Statement stmt = con.createStatement();
-            ResultSet rs = stmt.executeQuery(sql);
+            PreparedStatement stmt = con.prepareStatement(sql);
+            stmt.setString(1, maHD);
+            ResultSet rs = stmt.executeQuery();
             
-            while (rs.next()) {
-                String maHD = rs.getString("maHD");
+            if (rs.next()) {
                 LocalDateTime ngayLap = rs.getTimestamp("ngayLap").toLocalDateTime();
                 String ptThanhToan = rs.getString("phuongThucThanhToan");
                 String trangThai = rs.getString("trangThai");
                 BigDecimal tienGiam = rs.getBigDecimal("tienGiam");
                 BigDecimal thueVAT = rs.getBigDecimal("thueVAT");
 
-                // Đóng gói thông tin Nhân viên
                 NhanVien nv = new NhanVien();
                 nv.setMaNV(rs.getString("maNV"));
                 nv.setTenNV(rs.getString("tenNV"));
 
-                // Đóng gói thông tin Bàn
                 Ban ban = null;
                 if (rs.getString("maBan") != null) {
                     ban = new Ban();
@@ -162,7 +176,6 @@ public class HoaDon_DAO {
                     ban.setTenBan(rs.getString("tenBan"));
                 }
 
-                // Đóng gói thông tin Khách hàng
                 KhachHang kh = null;
                 if (rs.getString("maKH") != null) {
                     kh = new KhachHang();
@@ -170,7 +183,6 @@ public class HoaDon_DAO {
                     kh.setTenKH(rs.getString("tenKH"));
                 }
 
-                // Đóng gói thông tin Khuyến mãi
                 KhuyenMai km = null;
                 if (rs.getString("maKM") != null) {
                     km = new KhuyenMai();
@@ -178,22 +190,19 @@ public class HoaDon_DAO {
                     km.setTenKM(rs.getString("tenKM"));
                 }
 
-                // Tạo đối tượng HoaDon hoàn chỉnh
-                HoaDon hd = new HoaDon(maHD, ngayLap, ptThanhToan, trangThai, tienGiam, thueVAT, nv, ban, kh, km);
-                
-                // Lấy thêm danh sách món ăn thuộc hóa đơn này gán vào
+                hd = new HoaDon(maHD, ngayLap, ptThanhToan, trangThai, tienGiam, thueVAT, nv, ban, kh, km);
                 hd.setDanhSachChiTiet(layChiTietHoaDon(maHD));
-                
-                danhSachHD.add(hd);
             }
+            rs.close();
+            stmt.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return danhSachHD;
+        return hd;
     }
 
     /**
-     * LẤY CHI TIẾT MÓN ĂN CỦA MỘT HÓA ĐƠN
+     * Lấy chi tiết món ăn của một hóa đơn
      */
     public List<ChiTietHoaDon> layChiTietHoaDon(String maHD) {
         List<ChiTietHoaDon> danhSachCT = new ArrayList<>();
@@ -207,23 +216,16 @@ public class HoaDon_DAO {
             ResultSet rs = stmt.executeQuery();
             
             while (rs.next()) {
-                String maMon = rs.getString("maMon");
-                String tenMon = rs.getString("tenMon");
-                String donViTinh = rs.getString("donViTinh");
-                int soLuong = rs.getInt("soLuong");
-                BigDecimal donGia = rs.getBigDecimal("donGia");
-                String ghiChu = rs.getString("ghiChu");
-
-                // Tạo đối tượng Mon
                 Mon mon = new Mon();
-                mon.setMaMon(maMon);
-                mon.setTenMon(tenMon);
-                mon.setDonViTinh(donViTinh);
+                mon.setMaMon(rs.getString("maMon"));
+                mon.setTenMon(rs.getString("tenMon"));
+                mon.setDonViTinh(rs.getString("donViTinh"));
 
-                // Tạo đối tượng ChiTietHoaDon
-                ChiTietHoaDon cthd = new ChiTietHoaDon(null, mon, soLuong, donGia, ghiChu);
+                ChiTietHoaDon cthd = new ChiTietHoaDon(null, mon, rs.getInt("soLuong"), rs.getBigDecimal("donGia"), rs.getString("ghiChu"));
                 danhSachCT.add(cthd);
             }
+            rs.close();
+            stmt.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -231,51 +233,55 @@ public class HoaDon_DAO {
     }
 
     /**
-     * THANH TOÁN HÓA ĐƠN
+     * THANH TOÁN HÓA ĐƠN VÀ CẬP NHẬT BÀN VỀ TRỐNG
      */
     public boolean thanhToanHoaDon(String maHD, String phuongThuc, String maBan) {
-        Connection con = null;
-        PreparedStatement stmtHD = null;
-        PreparedStatement stmtBan = null;
-
         String sqlHD = "UPDATE HoaDon SET trangThai = N'Đã thanh toán', phuongThucThanhToan = ? WHERE maHD = ?";
         String sqlBan = "UPDATE Ban SET trangThai = N'Trống' WHERE maBan = ?";
 
+        Connection con = null;
         try {
             con = ConnectDB.getConnection();
-            con.setAutoCommit(false); 
+            con.setAutoCommit(false); // Bắt đầu Transaction
 
-            // Cập nhật trạng thái hóa đơn
-            stmtHD = con.prepareStatement(sqlHD);
-            stmtHD.setString(1, phuongThuc);
-            stmtHD.setString(2, maHD);
-            stmtHD.executeUpdate();
-
-            // Cập nhật bàn về "Trống"
-            if (maBan != null && !maBan.isEmpty()) {
-                stmtBan = con.prepareStatement(sqlBan);
-                stmtBan.setString(1, maBan);
-                stmtBan.executeUpdate();
+            // 1. Cập nhật trạng thái hóa đơn thành "Đã thanh toán"
+            try (PreparedStatement stmtHD = con.prepareStatement(sqlHD)) {
+                stmtHD.setString(1, phuongThuc);
+                stmtHD.setString(2, maHD);
+                stmtHD.executeUpdate();
             }
 
-            con.commit();
+            // 2. Cập nhật trạng thái bàn về "Trống" trong CSDL
+            if (maBan != null && !maBan.trim().isEmpty()) {
+                String cleanMaBan = maBan.trim();
+                try (PreparedStatement stmtBan = con.prepareStatement(sqlBan)) {
+                    stmtBan.setString(1, cleanMaBan);
+                    int rowsUpdated = stmtBan.executeUpdate();
+                    System.out.println("DEBUG - Thanh toán thành công cho hóa đơn: " + maHD);
+                    System.out.println("DEBUG - Đang cập nhật bàn [" + cleanMaBan + "] về Trống. Số dòng thay đổi: " + rowsUpdated);
+                }
+            } else {
+                System.out.println("WARNING - Mã bàn thanh toán bị null hoặc rỗng!");
+            }
+
+            con.commit(); // Xác nhận lưu thay đổi xuống CSDL
             return true;
             
         } catch (SQLException e) {
             e.printStackTrace();
             if (con != null) {
-                try {
-                    con.rollback();
-                } catch (SQLException ex) {
-                    ex.printStackTrace();
+                try { 
+                    con.rollback(); // Hoàn tác nếu có lỗi xảy ra
+                } catch (SQLException ex) { 
+                    ex.printStackTrace(); 
                 }
             }
             return false;
         } finally {
             try {
-                if (stmtHD != null) stmtHD.close();
-                if (stmtBan != null) stmtBan.close();
-                if (con != null) con.setAutoCommit(true);
+                if (con != null) {
+                    con.setAutoCommit(true); // Trả lại trạng thái mặc định cho kết nối
+                }
             } catch (SQLException e) {
                 e.printStackTrace();
             }

@@ -35,14 +35,12 @@ public class Ban_DAO {
         }
         return maBanMoi;
     }
-
     /**
      * LẤY TẤT CẢ DANH SÁCH BÀN
      */
     public List<Ban> layTatCaBan() {
         List<Ban> danhSachBan = new ArrayList<>();
-        String sql = "SELECT * FROM Ban ORDER BY maBan ASC";
-        
+        String sql = "SELECT maBan, tenBan, soChoNgoi, trangThai FROM Ban";
         try {
             Connection con = ConnectDB.getConnection();
             Statement stmt = con.createStatement();
@@ -53,16 +51,20 @@ public class Ban_DAO {
                 String tenBan = rs.getString("tenBan");
                 int soChoNgoi = rs.getInt("soChoNgoi");
                 String trangThai = rs.getString("trangThai");
-
-                Ban ban = new Ban(maBan, tenBan, soChoNgoi, trangThai);
-                danhSachBan.add(ban);
+                
+                Ban b = new Ban(maBan, tenBan, soChoNgoi, trangThai);
+                danhSachBan.add(b);
             }
+            
+            // CHỈ ĐÓNG Statement và ResultSet, TUYỆT ĐỐI KHÔNG ĐÓNG Connection con ở đây
+            rs.close();
+            stmt.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return danhSachBan;
     }
-
+    
     /**
      * LẤY DANH SÁCH BÀN THEO TRẠNG THÁI
      */
