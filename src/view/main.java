@@ -36,7 +36,7 @@ public class main extends JFrame {
         pnlContainer = new JPanel(cardLayout);
 
         JPanel pnlWelcome = new JPanel(new GridBagLayout());
-        JLabel lblWelcome = new JLabel("<html><h2>Chào mừng đến với Hệ thống Quản lý Quán Cà Phê Evergreen</h2></html>");
+        JLabel lblWelcome = new JLabel("<htkml><h2>Chào mừng đến với Hệ thống Quản lý Quán Cà Phê Evergreen</h2></html>");
         pnlWelcome.add(lblWelcome);
         
         GiaoDienBanHang pnlBanHang = new GiaoDienBanHang();
