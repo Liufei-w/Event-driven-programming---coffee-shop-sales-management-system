@@ -19,11 +19,13 @@ public class main extends JFrame {
         
         JButton btnTrangChu = new JButton("Trang Chủ");
         JButton btnLapHoaDon = new JButton("Lập Hóa Đơn");
+        JButton btnTraCuuHoaDon = new JButton("Tra cứu hoá đơn");
         JButton btnQuanLyMon = new JButton("Quản Lý Món");
         JButton btnThongKe = new JButton("Thống Kê Doanh Thu");
 
         pnlMenu.add(btnTrangChu);
         pnlMenu.add(btnLapHoaDon);
+        pnlMenu.add(btnTraCuuHoaDon);
         pnlMenu.add(btnQuanLyMon);
         pnlMenu.add(btnThongKe);
 
@@ -38,10 +40,12 @@ public class main extends JFrame {
         pnlWelcome.add(lblWelcome);
         
         GiaoDienBanHang pnlBanHang = new GiaoDienBanHang();
+        GiaoDienTraCuuHoaDon pnlTraCuu = new GiaoDienTraCuuHoaDon();
         // JPanel pnlMon = new GiaoDienQuanLyMon(); // Màn hình của Thành viên khác
 
         pnlContainer.add(pnlWelcome, "TRANG_CHU");
         pnlContainer.add(pnlBanHang, "LAP_HOA_DON");
+        pnlContainer.add(pnlTraCuu, "TRA_CUU_HOADON");
         // pnlContainer.add(pnlMon, "QUAN_LY_MON");
 
         add(pnlContainer, BorderLayout.CENTER);
@@ -49,6 +53,7 @@ public class main extends JFrame {
         // Đăng ký sự kiện bấm nút trên Menu để chuyển màn hình
         btnTrangChu.addActionListener(e -> cardLayout.show(pnlContainer, "TRANG_CHU"));
         btnLapHoaDon.addActionListener(e -> cardLayout.show(pnlContainer, "LAP_HOA_DON"));
+        btnTraCuuHoaDon.addActionListener(e -> cardLayout.show(pnlContainer, "TRA_CUU_HOADON"));
         
         btnQuanLyMon.addActionListener(e -> {
             // cardLayout.show(pnlContainer, "QUAN_LY_MON");
