@@ -12,6 +12,89 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HoaDon_DAO {
+	
+	/*PHẦN DÀNH CHO TRA CỨU HOÁ ĐƠN
+	 */
+	public List<HoaDon> timKiemHoaDon(String maHDCantim, String trangThaiFilter) {
+	    List<HoaDon> dsHD = new ArrayList<>();
+	    StringBuilder sql = new StringBuilder(
+	        "SELECT h.*, n.tenNV, b.tenBan, k.tenKH, km.tenKM " +
+	        "FROM HoaDon h " +
+	        "JOIN NhanVien n ON h.maNV = n.maNV " +
+	        "LEFT JOIN Ban b ON h.maBan = b.maBan " +
+	        "LEFT JOIN KhachHang k ON h.maKH = k.maKH " +
+	        "LEFT JOIN KhuyenMai km ON h.maKM = km.maKM " +
+	        "WHERE 1=1"
+	    );
+	    
+	    if (maHDCantim != null && !maHDCantim.trim().isEmpty()) {
+	        sql.append(" AND h.maHD LIKE ?");
+	    }
+	    if (trangThaiFilter != null && !trangThaiFilter.equals("Tất cả")) {
+	        sql.append(" AND h.trangThai = ?");
+	    }
+	    sql.append(" ORDER BY h.ngayLap DESC");
+
+	    try (Connection con = ConnectDB.getConnection();
+	         PreparedStatement stmt = con.prepareStatement(sql.toString())) {
+	        
+	        int index = 1;
+	        if (maHDCantim != null && !maHDCantim.trim().isEmpty()) {
+	            stmt.setString(index++, "%" + maHDCantim.trim() + "%");
+	        }
+	        if (trangThaiFilter != null && !trangThaiFilter.equals("Tất cả")) {
+	            stmt.setString(index++, trangThaiFilter);
+	        }
+
+	        try (ResultSet rs = stmt.executeQuery()) {
+	            while (rs.next()) {
+	                String maHD = rs.getString("maHD");
+	                LocalDateTime ngayLap = rs.getTimestamp("ngayLap").toLocalDateTime();
+	                String ptThanhToan = rs.getString("phuongThucThanhToan");
+	                String trangThai = rs.getString("trangThai");
+	                BigDecimal tienGiam = rs.getBigDecimal("tienGiam");
+	                BigDecimal thueVAT = rs.getBigDecimal("thueVAT");
+
+	                NhanVien nv = new NhanVien();
+	                nv.setMaNV(rs.getString("maNV"));
+	                nv.setTenNV(rs.getString("tenNV"));
+
+	                Ban ban = null;
+	                if (rs.getString("maBan") != null) {
+	                    ban = new Ban();
+	                    ban.setMaBan(rs.getString("maBan"));
+	                    ban.setTenBan(rs.getString("tenBan"));
+	                }
+
+	                KhachHang kh = null;
+	                if (rs.getString("maKH") != null) {
+	                    kh = new KhachHang();
+	                    kh.setMaKH(rs.getString("maKH"));
+	                    kh.setTenKH(rs.getString("tenKH"));
+	                }
+
+	                KhuyenMai km = null;
+	                if (rs.getString("maKM") != null) {
+	                    km = new KhuyenMai();
+	                    km.setMaKM(rs.getString("maKM"));
+	                    km.setTenKM(rs.getString("tenKM"));
+	                }
+
+	                HoaDon hd = new HoaDon(maHD, ngayLap, ptThanhToan, trangThai, tienGiam, thueVAT, nv, ban, kh, km);
+	                
+	                // Gán danh sách chi tiết rỗng hoặc không gọi hàm con gây đóng kết nối ở đây
+	                hd.setDanhSachChiTiet(new ArrayList<>()); 
+	                
+	                dsHD.add(hd);
+	            }
+	        }
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	    return dsHD;
+	}
+	
+	//===================================================
 
 	/**
      * Phát sinh mã hóa đơn tự động

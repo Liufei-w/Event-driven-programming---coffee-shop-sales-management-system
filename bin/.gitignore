@@ -1,2 +1,11 @@
+<<<<<<< HEAD
 /view/
 /dao/
+=======
+/connectDB/
+/dao/
+/database/
+/entity/
+/service/
+/view/
+>>>>>>> c4394688e7f816ce6857c5b30816aee5b7fa9194
