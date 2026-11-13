@@ -40,23 +40,25 @@ public class main extends JFrame {
         pnlWelcome.add(lblWelcome);
         
         GiaoDienBanHang pnlBanHang = new GiaoDienBanHang();
-        GiaoDienTraCuuHoaDon pnlTraCuu = new GiaoDienTraCuuHoaDon();
-        // JPanel pnlMon = new GiaoDienQuanLyMon(); // Màn hình của Thành viên khác
 
+        GiaoDienQuanLyMon pnlMon = new GiaoDienQuanLyMon();
+
+        GiaoDienTraCuuHoaDon pnlTraCuu = new GiaoDienTraCuuHoaDon();
+        
         pnlContainer.add(pnlWelcome, "TRANG_CHU");
         pnlContainer.add(pnlBanHang, "LAP_HOA_DON");
+        pnlContainer.add(pnlMon, "QUAN_LY_MON");
         pnlContainer.add(pnlTraCuu, "TRA_CUU_HOADON");
-        // pnlContainer.add(pnlMon, "QUAN_LY_MON");
-
         add(pnlContainer, BorderLayout.CENTER);
 
         // Đăng ký sự kiện bấm nút trên Menu để chuyển màn hình
         btnTrangChu.addActionListener(e -> cardLayout.show(pnlContainer, "TRANG_CHU"));
         btnLapHoaDon.addActionListener(e -> cardLayout.show(pnlContainer, "LAP_HOA_DON"));
+
         btnTraCuuHoaDon.addActionListener(e -> cardLayout.show(pnlContainer, "TRA_CUU_HOADON"));
         
         btnQuanLyMon.addActionListener(e -> {
-            // cardLayout.show(pnlContainer, "QUAN_LY_MON");
+            cardLayout.show(pnlContainer, "QUAN_LY_MON");
         });
         
         cardLayout.show(pnlContainer, "TRANG_CHU");
