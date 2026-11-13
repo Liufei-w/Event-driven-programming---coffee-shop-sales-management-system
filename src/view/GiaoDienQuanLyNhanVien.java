@@ -119,7 +119,11 @@ public class GiaoDienQuanLyNhanVien extends JFrame
 		String[] tieuDeCot = {"Mã NV", "Tên nhân viên", "Giới tính", "Ngày sinh", 
 				"Số điện thoại", "Địa chỉ", "Ngày vào làm", "Trạng thái"};
 		
-		tableModel = new DefaultTableModel(tieuDeCot, 0);
+		tableModel = new DefaultTableModel(tieuDeCot, 0) {
+			public boolean isCellEditable(int row, int column) {
+				return false;
+			}
+		};
 		table = new JTable(tableModel);
 		
 		JPanel pDanhSach = new JPanel(new BorderLayout());
@@ -136,6 +140,7 @@ public class GiaoDienQuanLyNhanVien extends JFrame
 		btnXoa.addActionListener(this);
 		btnSua.addActionListener(this);
 		btnLamMoi.addActionListener(this);
+		table.addMouseListener(this);
 		
 		xoaTrangForm();
         napDanhSachNhanVien();
@@ -402,6 +407,12 @@ public class GiaoDienQuanLyNhanVien extends JFrame
 	@Override
 	public void mouseClicked(MouseEvent e) {
 		int dong = table.getSelectedRow();
+		
+		if(dong == -1) {
+			return;
+		}
+		maNVDangChon = table.getValueAt(dong, 0).toString();
+		
 		txtMaNhanVien.setText(table.getValueAt(dong, 0).toString());
 		txtTenNhanVien.setText(table.getValueAt(dong, 1).toString());
 		chonGiaTriComboBox(cboGioiTinh, table.getValueAt(dong, 2).toString());

@@ -13,21 +13,13 @@ import connectDB.ConnectDB;
 import entity.NhanVien;
 
 public class NhanVien_DAO {
-	protected Connection layKetNoi() throws SQLException {
-        Connection con = ConnectDB.getConnection();
-        if (con == null || con.isClosed()) {
-            throw new SQLException("Không lấy được kết nối. Kiểm tra cấu hình ConnectDB và SQL Server.");
-        }
-        return con;
-    }
-
     public ArrayList<NhanVien> layDanhSachNhanVien() throws SQLException {
         ArrayList<NhanVien> danhSach = new ArrayList<NhanVien>();
         String sql = "SELECT maNV, tenNV, gioiTinh, ngaySinh, soDienThoai, "
                 + "diaChi, ngayVaoLam, trangThai FROM NhanVien ORDER BY maNV";
 
        
-        Connection con = layKetNoi();
+        Connection con = ConnectDB.getConnection();
         try (PreparedStatement ps = con.prepareStatement(sql);
                 ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
@@ -48,7 +40,7 @@ public class NhanVien_DAO {
 
     public boolean kiemTraTrungMa(String maNV) throws SQLException {
         String sql = "SELECT 1 FROM NhanVien WHERE maNV = ?";
-        Connection con = layKetNoi();
+        Connection con = ConnectDB.getConnection();
         try (PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, maNV);
             try (ResultSet rs = ps.executeQuery()) {
@@ -63,7 +55,7 @@ public class NhanVien_DAO {
                 + "(maNV, tenNV, gioiTinh, ngaySinh, soDienThoai, diaChi, ngayVaoLam, trangThai) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
-        Connection con = layKetNoi();
+        Connection con = ConnectDB.getConnection();
         try (PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, nv.getMaNV());
             ps.setNString(2, nv.getTenNV());
@@ -83,7 +75,7 @@ public class NhanVien_DAO {
                 + "soDienThoai = ?, diaChi = ?, ngayVaoLam = ?, trangThai = ? "
                 + "WHERE maNV = ?";
 
-        Connection con = layKetNoi();
+        Connection con = ConnectDB.getConnection();
         try (PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setNString(1, nv.getTenNV());
             ps.setNString(2, nv.getGioiTinh());
@@ -100,7 +92,7 @@ public class NhanVien_DAO {
     public boolean xoaNhanVien(String maNV) throws SQLException {
         
         String sql = "DELETE FROM NhanVien WHERE maNV = ?";
-        Connection con = layKetNoi();
+        Connection con = ConnectDB.getConnection();
         try (PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, maNV);
             return ps.executeUpdate() == 1;

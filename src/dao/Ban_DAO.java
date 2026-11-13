@@ -41,8 +41,8 @@ public class Ban_DAO {
     public List<Ban> layTatCaBan() {
         List<Ban> danhSachBan = new ArrayList<>();
         String sql = "SELECT maBan, tenBan, soChoNgoi, trangThai FROM Ban";
+        Connection con = ConnectDB.getConnection();
         try {
-            Connection con = ConnectDB.getConnection();
             Statement stmt = con.createStatement();
             ResultSet rs = stmt.executeQuery(sql);
             
@@ -63,6 +63,64 @@ public class Ban_DAO {
             e.printStackTrace();
         }
         return danhSachBan;
+    }
+    
+    public boolean kiemTraTrungMaBan(String maBan) throws SQLException {
+        String sql = "SELECT 1 FROM Ban WHERE maBan = ?";
+        Connection con = ConnectDB.getConnection();
+        try (PreparedStatement stmt = con.prepareStatement(sql)) {
+            stmt.setString(1, maBan);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+    
+    public boolean themBan(Ban ban) throws SQLException {
+        String sql = "INSERT INTO Ban (maBan, tenBan, soChoNgoi, trangThai) VALUES (?, ?, ?, ?)";
+        Connection con = ConnectDB.getConnection();
+        for (int lanThu = 1; lanThu <= 3; lanThu++) {
+            String maBanMoi = phatSinhMaBan();
+            try (PreparedStatement stmt = con.prepareStatement(sql)) {
+                stmt.setString(1, maBanMoi);
+                stmt.setNString(2, ban.getTenBan());
+                stmt.setInt(3, ban.getSoChoNgoi());
+                stmt.setNString(4, ban.getTrangThai());
+                boolean thanhCong = stmt.executeUpdate() == 1;
+                if (thanhCong) {
+                    ban.setMaBan(maBanMoi);
+                }
+                return thanhCong;
+            } catch (SQLException e) {
+                boolean trungMa = e.getErrorCode() == 2627 || e.getErrorCode() == 2601;
+                if (!trungMa || lanThu == 3) {
+                    throw e;
+                }
+                // Mã vừa bị máy khác sử dụng: đọc database để sinh lại mã.
+            }
+        }
+        return false;
+    }
+    
+    public boolean suaBan(Ban ban) throws SQLException {
+        String sql = "UPDATE Ban SET tenBan = ?, soChoNgoi = ?, trangThai = ? WHERE maBan = ?";
+        Connection con = ConnectDB.getConnection();
+        try (PreparedStatement stmt = con.prepareStatement(sql)) {
+            stmt.setNString(1, ban.getTenBan());
+            stmt.setInt(2, ban.getSoChoNgoi());
+            stmt.setNString(3, ban.getTrangThai());
+            stmt.setString(4, ban.getMaBan());
+            return stmt.executeUpdate() == 1;
+        }
+    }
+    
+    public boolean xoaBan(String maBan) throws SQLException {
+        String sql = "DELETE FROM Ban WHERE maBan = ?";
+        Connection con = ConnectDB.getConnection();
+        try (PreparedStatement stmt = con.prepareStatement(sql)) {
+            stmt.setString(1, maBan);
+            return stmt.executeUpdate() == 1;
+        }
     }
     
     /**
