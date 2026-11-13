@@ -31,11 +31,17 @@ public class GiaoDienBanHang extends JPanel implements ActionListener {
 
     private JTable tblChiTietHoaDon;
     private DefaultTableModel modelTableCTHD;
-    private JLabel lblMaHD, lblTenBan, lblTongTien, lblMonDangChon;
+    private JLabel lblMaHD;
+    private JLabel lblTenBan;
+    private JLabel lblTongTien;
+    private JLabel lblMonDangChon;
     private JTextField txtGhiChu;
     private JSpinner spnSoLuong;
-    private JButton btnThemMon, btnXoaMon, btnThanhToan, btnInHoaDon;
-
+    private JButton btnThemMon;
+    private JButton btnXoaMon;
+    private JButton btnThanhToan;
+    private JButton btnInHoaDon;
+    
     private Ban_DAO banDAO;
     private Mon_DAO monDAO;
     private LoaiMon_DAO loaiMonDAO;
@@ -440,7 +446,28 @@ public class GiaoDienBanHang extends JPanel implements ActionListener {
             return;
         }
 
-        boolean kq = hoaDonDAO.thanhToanHoaDon(lblMaHD.getText(), "Tiền mặt", banDangChon.getMaBan());
+        // 1. Tính lại tiền giảm từ ComboBox khuyến mãi đang chọn
+        BigDecimal tienGiam = BigDecimal.ZERO;
+        String maKM = null;
+
+        if (cboKhuyenMai != null && cboKhuyenMai.getSelectedIndex() > 0) {
+            KhuyenMai km = (KhuyenMai) cboKhuyenMai.getSelectedItem();
+            if (km != null && km.getMaKM() != null && !km.getMaKM().trim().isEmpty()) {
+                maKM = km.getMaKM();
+                
+                // Tính lại số tiền giảm chính xác dựa trên tổng tiền chưa VAT hiện tại
+                BigDecimal tongChuaVAT = BigDecimal.ZERO;
+                for (int i = 0; i < modelTableCTHD.getRowCount(); i++) {
+                    tongChuaVAT = tongChuaVAT.add(new BigDecimal(modelTableCTHD.getValueAt(i, 3).toString()));
+                }
+                if (km.getPhanTramGiam() != null) {
+                    tienGiam = tongChuaVAT.multiply(km.getPhanTramGiam());
+                }
+            }
+        }
+
+        boolean kq = hoaDonDAO.thanhToanHoaDon(lblMaHD.getText(), "Tiền mặt", banDangChon.getMaBan(), tienGiam, maKM);
+        
         if (kq) {
             JOptionPane.showMessageDialog(this, "Thanh toán thành công!");
             modelTableCTHD.setRowCount(0);

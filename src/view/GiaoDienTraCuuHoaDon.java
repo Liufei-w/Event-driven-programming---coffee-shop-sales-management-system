@@ -1,7 +1,6 @@
 package view;
 
 import dao.HoaDon_DAO;
-import entity.ChiTietHoaDon;
 import entity.HoaDon;
 
 import javax.swing.*;
@@ -16,7 +15,9 @@ import java.util.List;
 public class GiaoDienTraCuuHoaDon extends JPanel implements ActionListener {
     private JTextField txtMaHD;
     private JComboBox<String> cboTrangThai;
-    private JButton btnTimKiem, btnXemChiTiet;
+    private JComboBox<String> cboThoiGian;
+    private JButton btnTimKiem;
+    private JButton btnXemChiTiet;
     private JTable tblHoaDon;
     private DefaultTableModel modelTableHD;
 
@@ -28,17 +29,21 @@ public class GiaoDienTraCuuHoaDon extends JPanel implements ActionListener {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // 1. PHẦN BẮC (NORTH): THANH TÌM KIẾM
+        // 1. PHẦN BẮC (NORTH): THANH BỘ LỌC TÌM KIẾM
         JPanel pnlNorth = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         pnlNorth.setBorder(BorderFactory.createTitledBorder("Bộ lọc tìm kiếm hóa đơn"));
 
-        pnlNorth.add(new JLabel("Mã hóa đơn:"));
-        txtMaHD = new JTextField(15);
+        pnlNorth.add(new JLabel("Mã HĐ:"));
+        txtMaHD = new JTextField(12);
         pnlNorth.add(txtMaHD);
 
         pnlNorth.add(new JLabel("Trạng thái:"));
         cboTrangThai = new JComboBox<>(new String[]{"Tất cả", "Đã thanh toán", "Chưa thanh toán"});
         pnlNorth.add(cboTrangThai);
+
+        pnlNorth.add(new JLabel("Thời gian:"));
+        cboThoiGian = new JComboBox<>(new String[]{"Tất cả thời gian", "Hôm nay", "Tuần này", "Tháng này"});
+        pnlNorth.add(cboThoiGian);
 
         btnTimKiem = new JButton("Tìm kiếm");
         btnTimKiem.setBackground(new Color(70, 130, 180));
@@ -47,8 +52,8 @@ public class GiaoDienTraCuuHoaDon extends JPanel implements ActionListener {
 
         add(pnlNorth, BorderLayout.NORTH);
 
-        // 2. PHẦN GIỮA (CENTER): BẢNG HIỂN THỊ DANH SÁCH HÓA ĐƠN
-        String[] columnNames = {"Mã HĐ", "Ngày lập", "Bàn", "Nhân viên", "Trạng thái", "Tiền giảm", "Tổng thanh toán"};
+        // 2. PHẦN GIỮA (CENTER): BẢNG HIỂN THỊ
+        String[] columnNames = {"Mã HĐ", "Ngày lập", "Bàn", "Nhân viên", "Trạng thái", "Tiền giảm", "Thao tác"};
         modelTableHD = new DefaultTableModel(columnNames, 0);
         tblHoaDon = new JTable(modelTableHD);
         add(new JScrollPane(tblHoaDon), BorderLayout.CENTER);
@@ -66,13 +71,11 @@ public class GiaoDienTraCuuHoaDon extends JPanel implements ActionListener {
         // Đăng ký sự kiện
         btnTimKiem.addActionListener(this);
         btnXemChiTiet.addActionListener(this);
-
-        taiDanhSachHoaDon("", "Tất cả");
     }
 
-    private void taiDanhSachHoaDon(String maHD, String trangThai) {
+    private void taiDanhSachHoaDon(String maHD, String trangThai, String thoiGian) {
         modelTableHD.setRowCount(0);
-        List<HoaDon> dsHD = hoaDonDAO.timKiemHoaDon(maHD, trangThai);
+        List<HoaDon> dsHD = hoaDonDAO.timKiemHoaDon(maHD, trangThai, thoiGian);
         
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
@@ -82,8 +85,6 @@ public class GiaoDienTraCuuHoaDon extends JPanel implements ActionListener {
             String tenNV = (hd.getNhanVien() != null) ? hd.getNhanVien().getMaNV() : "---";
             
             BigDecimal tienGiam = hd.getTienGiam() != null ? hd.getTienGiam() : BigDecimal.ZERO;
-            
-            BigDecimal tongThanhToan = BigDecimal.ZERO; 
 
             modelTableHD.addRow(new Object[]{
                 hd.getMaHD(),
@@ -103,7 +104,8 @@ public class GiaoDienTraCuuHoaDon extends JPanel implements ActionListener {
         if (o.equals(btnTimKiem)) {
             String maHD = txtMaHD.getText();
             String trangThai = (String) cboTrangThai.getSelectedItem();
-            taiDanhSachHoaDon(maHD, trangThai);
+            String thoiGian = (String) cboThoiGian.getSelectedItem();
+            taiDanhSachHoaDon(maHD, trangThai, thoiGian);
         } else if (o.equals(btnXemChiTiet)) {
             int row = tblHoaDon.getSelectedRow();
             if (row == -1) {
