@@ -61,4 +61,81 @@ public class LoaiMon_DAO {
         }
         return null;
     }
+    
+    // --- CODE BỔ SUNG CHO QUẢN LÝ LOẠI MÓN ---
+    /**
+     * TỰ ĐỘNG PHÁT SINH MÃ LOẠI MÓN
+     */
+    public String phatSinhMaLoai() {
+        String maMoi = "LM01";
+        String sql = "SELECT TOP 1 maLoai FROM LoaiMon ORDER BY maLoai DESC";
+        try {
+            Connection con = ConnectDB.getConnection();
+            Statement stmt = con.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+            if (rs.next()) {
+                String maCu = rs.getString("maLoai"); // VD: LM01
+                int stt = Integer.parseInt(maCu.substring(2)) + 1;
+                maMoi = String.format("LM%02d", stt);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return maMoi;
+    }
+
+    /**
+     * TÌM LOẠI MÓN THEO TÊN
+     */
+    public LoaiMon timLoaiMonTheoTen(String tenLoai) {
+        String sql = "SELECT * FROM LoaiMon WHERE tenLoai = ?";
+        try {
+            Connection con = ConnectDB.getConnection();
+            PreparedStatement stmt = con.prepareStatement(sql);
+            stmt.setString(1, tenLoai);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return new LoaiMon(rs.getString("maLoai"), rs.getString("tenLoai"), rs.getString("moTa"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * THÊM LOẠI MÓN
+     */
+    public boolean themLoaiMon(LoaiMon lm) {
+        String sql = "INSERT INTO LoaiMon(maLoai, tenLoai, moTa) VALUES(?, ?, ?)";
+        try {
+            Connection con = ConnectDB.getConnection();
+            PreparedStatement stmt = con.prepareStatement(sql);
+            stmt.setString(1, lm.getMaLoai());
+            stmt.setString(2, lm.getTenLoai());
+            stmt.setString(3, lm.getMoTa());
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    
+    /**
+     * XÓA LOẠI MÓN THEO MÃ
+     */
+    public boolean xoaLoaiMon(String maLoai) {
+        String sql = "DELETE FROM LoaiMon WHERE maLoai = ?";
+        try {
+            Connection con = ConnectDB.getConnection();
+            PreparedStatement stmt = con.prepareStatement(sql);
+            stmt.setString(1, maLoai);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
 }

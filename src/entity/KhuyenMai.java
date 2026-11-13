@@ -73,6 +73,11 @@ public class KhuyenMai {
 
     @Override
     public String toString() {
-        return "KhuyenMai{" + "maKM='" + maKM + '\'' + ", tenKM='" + tenKM + '\'' + '}';
+        if (maKM == null) {
+            return "-- Không áp dụng khuyến mãi --";
+        }
+        int phanTram = (phanTramGiam != null) ? phanTramGiam.multiply(BigDecimal.valueOf(100)).intValue() : 0;
+        
+        return maKM + " - " + tenKM + " (-" + phanTram + "%)";
     }
 }
