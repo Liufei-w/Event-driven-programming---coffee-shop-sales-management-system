@@ -41,10 +41,10 @@ public class Ban_DAO {
     public List<Ban> layTatCaBan() {
         List<Ban> danhSachBan = new ArrayList<>();
         String sql = "SELECT maBan, tenBan, soChoNgoi, trangThai FROM Ban";
-        Connection con = ConnectDB.getConnection();
-        try {
-            Statement stmt = con.createStatement();
-            ResultSet rs = stmt.executeQuery(sql);
+        
+        try (Connection con = ConnectDB.getConnection();
+             Statement stmt = con.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
             
             while (rs.next()) {
                 String maBan = rs.getString("maBan");
@@ -55,10 +55,6 @@ public class Ban_DAO {
                 Ban b = new Ban(maBan, tenBan, soChoNgoi, trangThai);
                 danhSachBan.add(b);
             }
-            
-            // CHỈ ĐÓNG Statement và ResultSet, TUYỆT ĐỐI KHÔNG ĐÓNG Connection con ở đây
-            rs.close();
-            stmt.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }

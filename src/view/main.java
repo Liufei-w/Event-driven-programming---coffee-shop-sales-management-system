@@ -54,7 +54,6 @@ public class main extends JFrame {
         // Đăng ký sự kiện bấm nút trên Menu để chuyển màn hình
         btnTrangChu.addActionListener(e -> cardLayout.show(pnlContainer, "TRANG_CHU"));
         btnLapHoaDon.addActionListener(e -> cardLayout.show(pnlContainer, "LAP_HOA_DON"));
-
         btnTraCuuHoaDon.addActionListener(e -> cardLayout.show(pnlContainer, "TRA_CUU_HOADON"));
         
         btnQuanLyMon.addActionListener(e -> {

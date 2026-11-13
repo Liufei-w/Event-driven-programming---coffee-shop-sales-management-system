@@ -18,16 +18,24 @@ public class ConnectDB {
 		String password = "sapassword";
 
 		try {
+			// Đảm bảo đóng kết nối cũ nếu nó không còn hợp lệ trước khi mở mới
+			if (con != null && !con.isClosed()) {
+				con.close();
+			}
 			con = DriverManager.getConnection(url, user, password);
-
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 	}
 
 	public static Connection getConnection() {
-		if (con == null) {
-			instance.connect();
+		try {
+			if (con == null || con.isClosed()) {
+				instance.connect();
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			instance.connect(); // Thử kết nối lại nếu check bị lỗi
 		}
 		return con;
 	}

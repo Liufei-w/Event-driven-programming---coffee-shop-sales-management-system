@@ -13,9 +13,8 @@ import java.util.List;
 
 public class HoaDon_DAO {
 	
-	/*PHẦN DÀNH CHO TRA CỨU HOÁ ĐƠN
-	 */
-	public List<HoaDon> timKiemHoaDon(String maHDCantim, String trangThaiFilter) {
+	// PHẦN DÀNH CHO TRA CỨU HOÁ ĐƠN
+	public List<HoaDon> timKiemHoaDon(String maHDCantim, String trangThaiFilter, String mocThoiGian) {
 	    List<HoaDon> dsHD = new ArrayList<>();
 	    StringBuilder sql = new StringBuilder(
 	        "SELECT h.*, n.tenNV, b.tenBan, k.tenKH, km.tenKM " +
@@ -27,12 +26,26 @@ public class HoaDon_DAO {
 	        "WHERE 1=1"
 	    );
 	    
+	    // Điều kiện lọc theo mã hóa đơn
 	    if (maHDCantim != null && !maHDCantim.trim().isEmpty()) {
 	        sql.append(" AND h.maHD LIKE ?");
 	    }
+	    // Điều kiện lọc theo trạng thái
 	    if (trangThaiFilter != null && !trangThaiFilter.equals("Tất cả")) {
 	        sql.append(" AND h.trangThai = ?");
 	    }
+	    
+	    // Điều kiện lọc theo mốc thời gian (Sử dụng hàm ngày tháng của SQL Server)
+	    if (mocThoiGian != null) {
+	        if (mocThoiGian.equals("Hôm nay")) {
+	            sql.append(" AND CAST(h.ngayLap AS DATE) = CAST(GETDATE() AS DATE)");
+	        } else if (mocThoiGian.equals("Tuần này")) {
+	            sql.append(" AND DATEPART(week, h.ngayLap) = DATEPART(week, GETDATE()) AND YEAR(h.ngayLap) = YEAR(GETDATE())");
+	        } else if (mocThoiGian.equals("Tháng này")) {
+	            sql.append(" AND MONTH(h.ngayLap) = MONTH(GETDATE()) AND YEAR(h.ngayLap) = YEAR(GETDATE())");
+	        }
+	    }
+	    
 	    sql.append(" ORDER BY h.ngayLap DESC");
 
 	    try (Connection con = ConnectDB.getConnection();
@@ -81,8 +94,6 @@ public class HoaDon_DAO {
 	                }
 
 	                HoaDon hd = new HoaDon(maHD, ngayLap, ptThanhToan, trangThai, tienGiam, thueVAT, nv, ban, kh, km);
-	                
-	                // Gán danh sách chi tiết rỗng hoặc không gọi hàm con gây đóng kết nối ở đây
 	                hd.setDanhSachChiTiet(new ArrayList<>()); 
 	                
 	                dsHD.add(hd);
@@ -318,8 +329,8 @@ public class HoaDon_DAO {
     /**
      * THANH TOÁN HÓA ĐƠN VÀ CẬP NHẬT BÀN VỀ TRỐNG
      */
-    public boolean thanhToanHoaDon(String maHD, String phuongThuc, String maBan) {
-        String sqlHD = "UPDATE HoaDon SET trangThai = N'Đã thanh toán', phuongThucThanhToan = ? WHERE maHD = ?";
+    public boolean thanhToanHoaDon(String maHD, String phuongThuc, String maBan, BigDecimal tienGiam, String maKM) {
+        String sqlHD = "UPDATE HoaDon SET trangThai = N'Đã thanh toán', phuongThucThanhToan = ?, tienGiam = ?, maKM = ? WHERE maHD = ?";
         String sqlBan = "UPDATE Ban SET trangThai = N'Trống' WHERE maBan = ?";
 
         Connection con = null;
@@ -327,10 +338,16 @@ public class HoaDon_DAO {
             con = ConnectDB.getConnection();
             con.setAutoCommit(false); // Bắt đầu Transaction
 
-            // 1. Cập nhật trạng thái hóa đơn thành "Đã thanh toán"
+            // 1. Cập nhật trạng thái, phương thức thanh toán, tiền giảm và mã khuyến mãi
             try (PreparedStatement stmtHD = con.prepareStatement(sqlHD)) {
                 stmtHD.setString(1, phuongThuc);
-                stmtHD.setString(2, maHD);
+                stmtHD.setBigDecimal(2, tienGiam != null ? tienGiam : BigDecimal.ZERO);
+                if (maKM != null && !maKM.trim().isEmpty()) {
+                    stmtHD.setString(3, maKM);
+                } else {
+                    stmtHD.setNull(3, java.sql.Types.VARCHAR);
+                }
+                stmtHD.setString(4, maHD);
                 stmtHD.executeUpdate();
             }
 
@@ -339,12 +356,8 @@ public class HoaDon_DAO {
                 String cleanMaBan = maBan.trim();
                 try (PreparedStatement stmtBan = con.prepareStatement(sqlBan)) {
                     stmtBan.setString(1, cleanMaBan);
-                    int rowsUpdated = stmtBan.executeUpdate();
-                    System.out.println("DEBUG - Thanh toán thành công cho hóa đơn: " + maHD);
-                    System.out.println("DEBUG - Đang cập nhật bàn [" + cleanMaBan + "] về Trống. Số dòng thay đổi: " + rowsUpdated);
+                    stmtBan.executeUpdate();
                 }
-            } else {
-                System.out.println("WARNING - Mã bàn thanh toán bị null hoặc rỗng!");
             }
 
             con.commit(); // Xác nhận lưu thay đổi xuống CSDL
@@ -354,7 +367,7 @@ public class HoaDon_DAO {
             e.printStackTrace();
             if (con != null) {
                 try { 
-                    con.rollback(); // Hoàn tác nếu có lỗi xảy ra
+                    con.rollback(); 
                 } catch (SQLException ex) { 
                     ex.printStackTrace(); 
                 }
@@ -363,7 +376,7 @@ public class HoaDon_DAO {
         } finally {
             try {
                 if (con != null) {
-                    con.setAutoCommit(true); // Trả lại trạng thái mặc định cho kết nối
+                    con.setAutoCommit(true);
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
