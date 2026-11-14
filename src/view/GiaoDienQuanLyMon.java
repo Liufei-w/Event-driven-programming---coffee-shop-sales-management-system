@@ -72,12 +72,17 @@ public class GiaoDienQuanLyMon extends JPanel implements ActionListener {
         txtTimLoai = new JTextField(10);
         pnlChucNangLoai.add(txtTimLoai);
         
-        btnTimLoai = new JButton("Tìm");
-        btnThemLoai = new JButton("Thêm");
+        btnTimLoai = new JButton("Tìm kiếm");
+        btnTimLoai.setBackground(new Color(70, 130, 180));
+        btnTimLoai.setForeground(Color.WHITE);
+        
+        btnThemLoai = new JButton("Thêm Loại món");
         btnXoaLoai = new JButton("Xóa");
         btnLamMoiLoai = new JButton("Làm mới");
         
         pnlChucNangLoai.add(btnTimLoai);
+        // Tạo khoảng trắng ngăn cách phần Tìm kiếm với các nút chức năng
+        pnlChucNangLoai.add(Box.createHorizontalStrut(30));
         pnlChucNangLoai.add(btnThemLoai);
         pnlChucNangLoai.add(btnXoaLoai);
         pnlChucNangLoai.add(btnLamMoiLoai);
@@ -89,7 +94,13 @@ public class GiaoDienQuanLyMon extends JPanel implements ActionListener {
 
         // Bảng Loại món
         String[] colLoai = {"Mã Loại", "Tên Loại", "Mô tả"};
-        modelLoaiMon = new DefaultTableModel(colLoai, 0);
+        modelLoaiMon = new DefaultTableModel(colLoai, 0) {
+        	// Khoá các ô của Bảng (Chế độ "Chỉ đọc")
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
         tblLoaiMon = new JTable(modelLoaiMon);
         JScrollPane scrollLoaiMon = new JScrollPane(tblLoaiMon);
         scrollLoaiMon.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.BLUE), "Danh sách Loại món"));
@@ -144,16 +155,21 @@ public class GiaoDienQuanLyMon extends JPanel implements ActionListener {
         JPanel pnlChucNangMon = new JPanel(new FlowLayout());
         pnlChucNangMon.setBorder(BorderFactory.createEmptyBorder(15, 0, 0, 0));
         
-        btnThemMon = new JButton("Thêm");
-        btnSuaMon = new JButton("Sửa");
+        btnThemMon = new JButton("Thêm Món");
+        btnSuaMon = new JButton("Cập nhật Món");
         btnXoaMon = new JButton("Xóa");
-        btnLamMoiMon = new JButton("Làm mới");
-        btnTimMon = new JButton("Tìm theo tên");
+        btnLamMoiMon = new JButton("Làm mới");    
+        btnTimMon = new JButton("Tìm theo tên Món");
+        btnTimMon.setBackground(new Color(70, 130, 180));
+        btnTimMon.setForeground(Color.WHITE);
+        
         pnlChucNangMon.add(btnThemMon);
         pnlChucNangMon.add(btnSuaMon);
         pnlChucNangMon.add(btnXoaMon);
-        pnlChucNangMon.add(btnTimMon);
         pnlChucNangMon.add(btnLamMoiMon);
+        
+        pnlChucNangMon.add(Box.createHorizontalStrut(30));
+        pnlChucNangMon.add(btnTimMon);
 
         JPanel pnlNorthPhai = new JPanel(new BorderLayout());
         pnlNorthPhai.add(pnlFormMon, BorderLayout.CENTER);
@@ -162,7 +178,13 @@ public class GiaoDienQuanLyMon extends JPanel implements ActionListener {
 
         // Bảng Món
         String[] colMon = {"Mã Món", "Tên Món", "Loại Món", "ĐVT", "Giá nhập", "Lợi nhuận", "Đơn giá", "Trạng thái"};
-        modelMon = new DefaultTableModel(colMon, 0);
+        modelMon = new DefaultTableModel(colMon, 0) {
+        	// Khoá các ô của Bảng (Chế độ "Chỉ đọc")
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
         tblMon = new JTable(modelMon);
         JScrollPane scrollMon = new JScrollPane(tblMon);
         scrollMon.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.BLUE), "Danh sách Món nước"));
@@ -535,7 +557,7 @@ public class GiaoDienQuanLyMon extends JPanel implements ActionListener {
         } else {
             if (JOptionPane.showConfirmDialog(this,
                     "Bạn có chắc chắn muốn xóa dòng này không?", 
-                    "Cảnh báo",
+                    "Cảnh báo!",
                     JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
                 
                 String maMon = modelMon.getValueAt(r, 0).toString();
