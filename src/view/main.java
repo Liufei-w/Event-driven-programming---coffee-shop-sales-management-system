@@ -49,11 +49,14 @@ public class main extends JFrame {
 
         GiaoDienTraCuuHoaDon pnlTraCuu = new GiaoDienTraCuuHoaDon();
         
+        GiaoDienThongKeDoanhThu pnlThongKe = new GiaoDienThongKeDoanhThu();
+        
         pnlContainer.add(pnlWelcome, "TRANG_CHU");
         pnlContainer.add(pnlBanHang, "LAP_HOA_DON");
         pnlContainer.add(pnlMon, "QUAN_LY_MON");
         pnlContainer.add(pnlKhuyenMai, "KHUYEN_MAI");
         pnlContainer.add(pnlTraCuu, "TRA_CUU_HOADON");
+        pnlContainer.add(pnlThongKe, "THONG_KE");
         add(pnlContainer, BorderLayout.CENTER);
 
         // Đăng ký sự kiện bấm nút trên Menu để chuyển màn hình
@@ -62,6 +65,7 @@ public class main extends JFrame {
         btnTraCuuHoaDon.addActionListener(e -> cardLayout.show(pnlContainer, "TRA_CUU_HOADON"));
         btnQuanLyMon.addActionListener(e -> cardLayout.show(pnlContainer, "QUAN_LY_MON"));
         btnKhuyenMai.addActionListener(e -> cardLayout.show(pnlContainer, "KHUYEN_MAI"));
+        btnThongKe.addActionListener(e -> cardLayout.show(pnlContainer, "THONG_KE"));
         
         cardLayout.show(pnlContainer, "TRANG_CHU");
     }
