@@ -383,4 +383,63 @@ public class HoaDon_DAO {
             }
         }
     }
+    /**
+     * Lấy danh sách hóa đơn đã thanh toán theo khoảng ngày
+     */
+    public List<HoaDon> layDanhSachHoaDonTheoNgay(LocalDate tuNgay, LocalDate denNgay) {
+        List<HoaDon> dsHD = new ArrayList<>();
+
+        String sql = "SELECT h.*, n.tenNV " +
+                     "FROM HoaDon h " +
+                     "JOIN NhanVien n ON h.maNV = n.maNV " +
+                     "WHERE h.trangThai = N'Đã thanh toán' " +
+                     "AND h.ngayLap >= ? " +
+                     "AND h.ngayLap < DATEADD(DAY, 1, ?) " +
+                     "ORDER BY h.ngayLap DESC";
+
+        Connection con = ConnectDB.getConnection();
+
+        try (PreparedStatement stmt = con.prepareStatement(sql)) {
+
+            stmt.setDate(1, java.sql.Date.valueOf(tuNgay));
+            stmt.setDate(2, java.sql.Date.valueOf(denNgay));
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+
+                    String maHD = rs.getString("maHD");
+                    LocalDateTime ngayLap = rs.getTimestamp("ngayLap").toLocalDateTime();
+
+                    String ptThanhToan = rs.getString("phuongThucThanhToan");
+                    String trangThai = rs.getString("trangThai");
+
+                    BigDecimal tienGiam = rs.getBigDecimal("tienGiam");
+                    BigDecimal thueVAT = rs.getBigDecimal("thueVAT");
+
+                    NhanVien nv = new NhanVien();
+                    nv.setMaNV(rs.getString("maNV"));
+                    nv.setTenNV(rs.getString("tenNV"));
+
+                    Ban ban = null;
+                    KhachHang kh = null;
+                    KhuyenMai km = null;
+
+                    HoaDon hd = new HoaDon(
+                        maHD, ngayLap, ptThanhToan, trangThai,
+                        tienGiam, thueVAT, nv, ban, kh, km
+                    );
+
+                    // Lấy danh sách món của hóa đơn
+                    hd.setDanhSachChiTiet(layChiTietHoaDon(maHD));
+
+                    dsHD.add(hd);
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return dsHD;
+    }
 }
