@@ -183,8 +183,6 @@ public class GiaoDienQuanLyBan extends JFrame
 	}
 	
 	private Ban layBanTuForm() {
-		// Ô mã chỉ hiển thị. DAO sẽ tự gán mã khi thêm;
-		// chức năng sửa lấy mã từ dòng được chọn trong bảng.
 		return new Ban("", txtTenBan.getText().trim(),
 				Integer.parseInt(txtSoChoNgoi.getText().trim()),
 				cboTrangThai.getSelectedItem().toString());
@@ -196,13 +194,11 @@ public class GiaoDienQuanLyBan extends JFrame
 		}
 		Ban ban = layBanTuForm();
 		try {
-			// DAO tự sinh mã từ database, không dùng nội dung của txtMaBan.
 			if (!ban_DAO.themBan(ban)) {
 				JOptionPane.showMessageDialog(this, "Không thêm được bàn!");
 				return;
 			}
 		} catch (SQLException e) {
-			// DAO đã thử sinh lại tối đa 3 lần nếu có máy khác thêm cùng lúc.
 			if (e.getErrorCode() == 2627 || e.getErrorCode() == 2601) {
 				JOptionPane.showMessageDialog(this,
 						"Mã bàn vừa được sử dụng bởi thao tác khác. Vui lòng nhấn Thêm để thử lại!");
@@ -229,7 +225,6 @@ public class GiaoDienQuanLyBan extends JFrame
 			return;
 		}
 		Ban ban = layBanTuForm();
-		// Mã là khóa chính và được hóa đơn tham chiếu: sửa thông tin, giữ mã.
 		ban.setMaBan(table.getValueAt(dong, 0).toString());
 		try {
 			if (!ban_DAO.suaBan(ban)) {
