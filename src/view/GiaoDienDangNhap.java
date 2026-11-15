@@ -93,6 +93,8 @@ public class GiaoDienDangNhap extends JFrame implements ActionListener {
         btnDangNhap.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnDangNhap.setBounds(42, 475, 406, 58);
         btnDangNhap.addActionListener(this);
+        txtTenDangNhap.addActionListener(this);
+        txtMatKhau.addActionListener(this);
 
         
         pnlDangNhap.add(lblLogo);
@@ -113,7 +115,9 @@ public class GiaoDienDangNhap extends JFrame implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
 
-        if (e.getSource() == btnDangNhap) {
+        if (e.getSource() == btnDangNhap
+        		 || e.getSource() == txtTenDangNhap
+        	        || e.getSource() == txtMatKhau) {
 
             String tenDangNhap = txtTenDangNhap.getText().trim();
             String matKhau = new String(txtMatKhau.getPassword());
