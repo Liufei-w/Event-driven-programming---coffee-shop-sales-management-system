@@ -14,7 +14,6 @@ import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -27,7 +26,7 @@ import dao.Ban_DAO;
 import entity.Ban;
 
 
-public class GiaoDienQuanLyBan extends JFrame 
+public class GiaoDienQuanLyBan extends JPanel 
 		implements ActionListener, MouseListener{
 	private JTextField txtMaBan;
 	private JTextField txtTenBan;
@@ -42,12 +41,6 @@ public class GiaoDienQuanLyBan extends JFrame
 	private Ban_DAO ban_DAO = new Ban_DAO();
 
 	public GiaoDienQuanLyBan() {
-		setTitle("Giao diện quản lý bàn");
-		setSize(1000, 700);
-		setResizable(false);
-		setDefaultCloseOperation(EXIT_ON_CLOSE);
-		setLocationRelativeTo(null);
-		
 		JPanel p = new JPanel(new BorderLayout());
 		this.add(p);
 		

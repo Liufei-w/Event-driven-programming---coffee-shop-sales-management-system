@@ -13,12 +13,10 @@ import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
@@ -26,7 +24,7 @@ import javax.swing.table.DefaultTableModel;
 import dao.KhachHang_DAO;
 import entity.KhachHang;
 
-public class GiaoDienQuanLyKhachHang extends JFrame 
+public class GiaoDienQuanLyKhachHang extends JPanel 
 		implements ActionListener, MouseListener{
 	private JTextField txtMaKhachHang;
 	private JTextField txtTenKhachHang;
@@ -40,12 +38,6 @@ public class GiaoDienQuanLyKhachHang extends JFrame
 	private KhachHang_DAO khachHang_DAO = new KhachHang_DAO();
 
 	public GiaoDienQuanLyKhachHang() {
-		setSize(1000, 700);
-		setResizable(false);
-		setTitle("Chức năng quản lý khách hàng");
-		setDefaultCloseOperation(EXIT_ON_CLOSE);
-		setLocationRelativeTo(null);
-		
 		JPanel p = new JPanel(new BorderLayout());
 		this.add(p);
 		
