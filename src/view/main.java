@@ -53,13 +53,19 @@ public class main extends JFrame {
         JButton btnQuanLyMon = taoNutMenu("Quản Lý Món");
         JButton btnKhuyenMai = taoNutMenu("Khuyến Mãi");
         JButton btnThongKe = taoNutMenu("Thống Kê Doanh Thu");
-
+        JButton btnQuanLyNhanVien = taoNutMenu("Quản Lý Nhân Viên");
+        JButton btnQuanLyBan = taoNutMenu("Quản Lý Bàn");
+        JButton btnQuanLyKhachHang = taoNutMenu("Quản Lý Khách Hàng");
+        
         pnlMenu.add(btnTrangChu);
         pnlMenu.add(btnLapHoaDon);
         pnlMenu.add(btnTraCuuHoaDon);
         pnlMenu.add(btnQuanLyMon);
         pnlMenu.add(btnKhuyenMai);
         pnlMenu.add(btnThongKe);
+        pnlMenu.add(btnQuanLyNhanVien);
+        pnlMenu.add(btnQuanLyBan);
+        pnlMenu.add(btnQuanLyKhachHang);
 
         // Đẩy các nút lên trên, phần trống nằm dưới cùng
         pnlMenu.add(Box.createVerticalGlue());
@@ -83,6 +89,10 @@ public class main extends JFrame {
         GiaoDienTraCuuHoaDon pnlTraCuu = new GiaoDienTraCuuHoaDon();
 
         GiaoDienThongKeDoanhThu pnlThongKe = new GiaoDienThongKeDoanhThu();
+        
+        GiaoDienQuanLyNhanVien pnlQuanLyNhanVien = new GiaoDienQuanLyNhanVien();
+        GiaoDienQuanLyBan pnlQuanLyBan = new GiaoDienQuanLyBan();
+        GiaoDienQuanLyKhachHang pnlQuanLyKhachHang = new GiaoDienQuanLyKhachHang();
 
         pnlContainer.add(pnlWelcome, "TRANG_CHU");
         pnlContainer.add(pnlBanHang, "LAP_HOA_DON");
@@ -90,6 +100,9 @@ public class main extends JFrame {
         pnlContainer.add(pnlKhuyenMai, "KHUYEN_MAI");
         pnlContainer.add(pnlTraCuu, "TRA_CUU_HOADON");
         pnlContainer.add(pnlThongKe, "THONG_KE");
+        pnlContainer.add(pnlQuanLyNhanVien, "QUAN_LY_NHAN_VIEN");
+        pnlContainer.add(pnlQuanLyBan, "QUAN_LY_BAN");
+        pnlContainer.add(pnlQuanLyKhachHang, "QUAN_LY_KHACH_HANG");
         add(pnlContainer, BorderLayout.CENTER);
 
         // Đăng ký sự kiện bấm nút trên Menu để chuyển màn hình
@@ -99,6 +112,9 @@ public class main extends JFrame {
         btnQuanLyMon.addActionListener(e -> chonMenu(btnQuanLyMon, "QUAN_LY_MON"));
         btnKhuyenMai.addActionListener(e -> chonMenu(btnKhuyenMai, "KHUYEN_MAI"));
         btnThongKe.addActionListener(e -> chonMenu(btnThongKe, "THONG_KE"));
+        btnQuanLyNhanVien.addActionListener(e -> chonMenu(btnQuanLyNhanVien, "QUAN_LY_NHAN_VIEN"));
+        btnQuanLyBan.addActionListener(e -> chonMenu(btnQuanLyBan, "QUAN_LY_BAN"));
+        btnQuanLyKhachHang.addActionListener(e -> chonMenu(btnQuanLyKhachHang, "QUAN_LY_KHACH_HANG"));
 
         // Mặc định mở Trang Chủ
         chonMenu(btnTrangChu, "TRANG_CHU");

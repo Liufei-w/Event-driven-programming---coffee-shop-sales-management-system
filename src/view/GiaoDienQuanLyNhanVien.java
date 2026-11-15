@@ -18,7 +18,6 @@ import java.util.ArrayList;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -30,7 +29,7 @@ import javax.swing.table.DefaultTableModel;
 import dao.NhanVien_DAO;
 import entity.NhanVien;
 
-public class GiaoDienQuanLyNhanVien extends JFrame 
+public class GiaoDienQuanLyNhanVien extends JPanel 
 		implements ActionListener, MouseListener {
 	
 	private static final long serialVersionUID = 1L;
@@ -56,12 +55,6 @@ public class GiaoDienQuanLyNhanVien extends JFrame
 	private final NhanVien_DAO nhanVienDAO = new NhanVien_DAO();
 
 	public GiaoDienQuanLyNhanVien() {
-		setSize(980, 690);
-		setResizable(false);
-		setTitle("Chức năng quản lý nhân viên");
-		setDefaultCloseOperation(EXIT_ON_CLOSE);
-		setLocationRelativeTo(null);
-		
 		JPanel p = new JPanel(new BorderLayout());
 		this.add(p);
 		
