@@ -55,8 +55,10 @@ public class GiaoDienQuanLyNhanVien extends JPanel
 	private final NhanVien_DAO nhanVienDAO = new NhanVien_DAO();
 
 	public GiaoDienQuanLyNhanVien() {
-		JPanel p = new JPanel(new BorderLayout());
-		this.add(p);
+		this.setLayout(new BorderLayout());
+
+	    JPanel p = new JPanel(new BorderLayout());
+	    this.add(p, BorderLayout.CENTER);
 		
 		JPanel pTieuDe = new JPanel(new BorderLayout());
 		JLabel lblTieuDe = new JLabel("	QUẢN LÝ NHÂN VIÊN");
@@ -127,7 +129,8 @@ public class GiaoDienQuanLyNhanVien extends JPanel
 		JPanel pNoiDung = new JPanel(new BorderLayout());
 		pNoiDung.add(pThongTin, BorderLayout.NORTH);
 		pNoiDung.add(pDanhSach, BorderLayout.CENTER);
-		p.add(pNoiDung, BorderLayout.SOUTH);
+
+		p.add(pNoiDung, BorderLayout.CENTER);
 		
 		btnThem.addActionListener(this);
 		btnXoa.addActionListener(this);

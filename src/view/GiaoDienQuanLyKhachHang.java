@@ -38,8 +38,10 @@ public class GiaoDienQuanLyKhachHang extends JPanel
 	private KhachHang_DAO khachHang_DAO = new KhachHang_DAO();
 
 	public GiaoDienQuanLyKhachHang() {
-		JPanel p = new JPanel(new BorderLayout());
-		this.add(p);
+		this.setLayout(new BorderLayout());
+
+	    JPanel p = new JPanel(new BorderLayout());
+	    this.add(p, BorderLayout.CENTER);
 		
 		JPanel pTieuDe = new JPanel(new BorderLayout());
 		JLabel lblTieuDe = new JLabel("QUẢN LÝ KHÁCH HÀNG");
