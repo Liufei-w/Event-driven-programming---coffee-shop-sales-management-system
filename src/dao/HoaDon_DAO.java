@@ -36,7 +36,7 @@ public class HoaDon_DAO {
 	        sql.append(" AND h.trangThai = ?");
 	    }
 	    
-	    // Điều kiện lọc theo mốc thời gian (Sử dụng hàm ngày tháng của SQL Server)
+	    // Điều kiện lọc theo mốc thời gian
 	    if (mocThoiGian != null) {
 	        if (mocThoiGian.equals("Hôm nay")) {
 	            sql.append(" AND CAST(h.ngayLap AS DATE) = CAST(GETDATE() AS DATE)");
@@ -169,7 +169,7 @@ public class HoaDon_DAO {
                 stmtHD.executeUpdate();
             }
 
-            // 2. Lưu chi tiết hóa đơn (nếu có)
+            // 2. Lưu chi tiết hóa đơn
             if (hd.getDanhSachChiTiet() != null && !hd.getDanhSachChiTiet().isEmpty()) {
                 try (PreparedStatement stmtCTHD = con.prepareStatement(sqlCTHD)) {
                     for (ChiTietHoaDon cthd : hd.getDanhSachChiTiet()) {
@@ -217,7 +217,6 @@ public class HoaDon_DAO {
      */
     public String layMaHDChuaThanhToanTheoBan(String maBan) {
         String maHD = null;
-        // Thêm sắp xếp ORDER BY ngayLap DESC để nếu có nhiều cái cũ, nó chỉ lấy hóa đơn mới nhất trong ngày
         String sql = "SELECT TOP 1 maHD FROM HoaDon WHERE maBan = ? AND trangThai = N'Chưa thanh toán' ORDER BY ngayLap DESC";
         try {
             Connection con = ConnectDB.getConnection();
@@ -337,7 +336,7 @@ public class HoaDon_DAO {
         Connection con = null;
         try {
             con = ConnectDB.getConnection();
-            con.setAutoCommit(false); // Bắt đầu Transaction
+            con.setAutoCommit(false);
 
             // Cập nhật hóa đơn (Trạng thái, phương thức, tiền giảm, khuyến mãi và mã khách hàng)
             try (PreparedStatement stmtHD = con.prepareStatement(sqlHD)) {
@@ -377,7 +376,7 @@ public class HoaDon_DAO {
                 }
             }
 
-            con.commit(); // Xác nhận lưu toàn bộ Transaction thành công
+            con.commit();
             return true;
             
         } catch (SQLException e) {
