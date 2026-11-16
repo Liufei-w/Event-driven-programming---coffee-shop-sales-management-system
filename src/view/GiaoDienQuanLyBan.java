@@ -41,8 +41,10 @@ public class GiaoDienQuanLyBan extends JPanel
 	private Ban_DAO ban_DAO = new Ban_DAO();
 
 	public GiaoDienQuanLyBan() {
-		JPanel p = new JPanel(new BorderLayout());
-		this.add(p);
+		this.setLayout(new BorderLayout());
+
+	    JPanel p = new JPanel(new BorderLayout());
+	    this.add(p, BorderLayout.CENTER);
 		
 		JPanel pTieuDe = new JPanel(new BorderLayout());
 		JLabel lblTieuDe = new JLabel("QUẢN LÝ BÀN");

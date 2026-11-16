@@ -47,7 +47,6 @@ public class main extends JFrame {
         pnlMenu.add(lblLogo);
         pnlMenu.add(lblTenQuan);
 
-        JButton btnTrangChu = taoNutMenu("Trang Chủ");
         JButton btnLapHoaDon = taoNutMenu("Lập Hóa Đơn");
         JButton btnTraCuuHoaDon = taoNutMenu("Tra cứu hoá đơn");
         JButton btnQuanLyMon = taoNutMenu("Quản Lý Món");
@@ -57,7 +56,6 @@ public class main extends JFrame {
         JButton btnQuanLyBan = taoNutMenu("Quản Lý Bàn");
         JButton btnQuanLyKhachHang = taoNutMenu("Quản Lý Khách Hàng");
         
-        pnlMenu.add(btnTrangChu);
         pnlMenu.add(btnLapHoaDon);
         pnlMenu.add(btnTraCuuHoaDon);
         pnlMenu.add(btnQuanLyMon);
@@ -76,9 +74,9 @@ public class main extends JFrame {
         cardLayout = new CardLayout();
         pnlContainer = new JPanel(cardLayout);
 
-        JPanel pnlWelcome = new JPanel(new GridBagLayout());
-        JLabel lblWelcome = new JLabel("<html><h2>Chào mừng đến với Hệ thống Quản lý Quán Cà Phê Evergreen</h2></html>");
-        pnlWelcome.add(lblWelcome);
+//        JPanel pnlWelcome = new JPanel(new GridBagLayout());
+//        JLabel lblWelcome = new JLabel("<html><h2>Chào mừng đến với Hệ thống Quản lý Quán Cà Phê Evergreen</h2></html>");
+//        pnlWelcome.add(lblWelcome);
 
         GiaoDienBanHang pnlBanHang = new GiaoDienBanHang();
 
@@ -94,7 +92,6 @@ public class main extends JFrame {
         GiaoDienQuanLyBan pnlQuanLyBan = new GiaoDienQuanLyBan();
         GiaoDienQuanLyKhachHang pnlQuanLyKhachHang = new GiaoDienQuanLyKhachHang();
 
-        pnlContainer.add(pnlWelcome, "TRANG_CHU");
         pnlContainer.add(pnlBanHang, "LAP_HOA_DON");
         pnlContainer.add(pnlMon, "QUAN_LY_MON");
         pnlContainer.add(pnlKhuyenMai, "KHUYEN_MAI");
@@ -106,7 +103,6 @@ public class main extends JFrame {
         add(pnlContainer, BorderLayout.CENTER);
 
         // Đăng ký sự kiện bấm nút trên Menu để chuyển màn hình
-        btnTrangChu.addActionListener(e -> chonMenu(btnTrangChu, "TRANG_CHU"));
         btnLapHoaDon.addActionListener(e -> chonMenu(btnLapHoaDon, "LAP_HOA_DON"));
         btnTraCuuHoaDon.addActionListener(e -> chonMenu(btnTraCuuHoaDon, "TRA_CUU_HOADON"));
         btnQuanLyMon.addActionListener(e -> chonMenu(btnQuanLyMon, "QUAN_LY_MON"));
@@ -117,7 +113,7 @@ public class main extends JFrame {
         btnQuanLyKhachHang.addActionListener(e -> chonMenu(btnQuanLyKhachHang, "QUAN_LY_KHACH_HANG"));
 
         // Mặc định mở Trang Chủ
-        chonMenu(btnTrangChu, "TRANG_CHU");
+        chonMenu(btnLapHoaDon, "LAP_HOA_DON");
     }
 
     // Tạo một nút cho sidebar
@@ -170,30 +166,14 @@ public class main extends JFrame {
         cardLayout.show(pnlContainer, tenCard);
     }
 
-    // Logo mẫu (vẽ tạm hình tròn có chữ LOGO)
-    // Khi có logo thật thì thay bằng:
-    //   ImageIcon icon = new ImageIcon("images/logo.png");
-    //   Image anh = icon.getImage().getScaledInstance(w, h, Image.SCALE_SMOOTH);
-    //   return new ImageIcon(anh);
     private ImageIcon taoLogo(int w, int h) {
-        BufferedImage img = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2 = img.createGraphics();
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        ImageIcon icon = new ImageIcon("img/cf.jpg");
 
-        g2.setColor(MAU_CHON);
-        g2.fillOval(0, 0, w - 1, h - 1);
+        Image anh = icon.getImage().getScaledInstance(
+            w, h, Image.SCALE_SMOOTH
+        );
 
-        g2.setColor(Color.WHITE);
-        g2.setFont(new Font("Segoe UI", Font.BOLD, 22));
-        FontMetrics fm = g2.getFontMetrics();
-        String chu = "LOGO";
-        int x = (w - fm.stringWidth(chu)) / 2;
-        int y = (h - fm.getHeight()) / 2 + fm.getAscent();
-        g2.drawString(chu, x, y);
-
-        g2.dispose();
-        return new ImageIcon(img);
+        return new ImageIcon(anh);
     }
 
     public static void main(String[] args) {
