@@ -65,7 +65,6 @@ public class main extends JFrame {
         pnlMenu.add(btnQuanLyBan);
         pnlMenu.add(btnQuanLyKhachHang);
 
-        // Đẩy các nút lên trên, phần trống nằm dưới cùng
         pnlMenu.add(Box.createVerticalGlue());
 
         add(pnlMenu, BorderLayout.WEST);
@@ -75,7 +74,7 @@ public class main extends JFrame {
         pnlContainer = new JPanel(cardLayout);
 
 //        JPanel pnlWelcome = new JPanel(new GridBagLayout());
-//        JLabel lblWelcome = new JLabel("<html><h2>Chào mừng đến với Hệ thống Quản lý Quán Cà Phê Evergreen</h2></html>");
+//        JLabel lblWelcome = new JLabel("Chào mừng đến với Hệ thống Quản lý Quán Cà Phê Evergreen");
 //        pnlWelcome.add(lblWelcome);
 
         GiaoDienBanHang pnlBanHang = new GiaoDienBanHang();

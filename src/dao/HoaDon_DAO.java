@@ -5,6 +5,7 @@ import entity.*;
 
 import java.sql.*;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -329,8 +330,8 @@ public class HoaDon_DAO {
     /**
      * THANH TOÁN HÓA ĐƠN VÀ CẬP NHẬT BÀN VỀ TRỐNG
      */
-    public boolean thanhToanHoaDon(String maHD, String phuongThuc, String maBan, BigDecimal tienGiam, String maKM) {
-        String sqlHD = "UPDATE HoaDon SET trangThai = N'Đã thanh toán', phuongThucThanhToan = ?, tienGiam = ?, maKM = ? WHERE maHD = ?";
+    public boolean thanhToanHoaDon(String maHD, String phuongThuc, String maBan, BigDecimal tienGiam, String maKM, String maKH, BigDecimal tongTienThanhToan) {
+        String sqlHD = "UPDATE HoaDon SET trangThai = N'Đã thanh toán', phuongThucThanhToan = ?, tienGiam = ?, maKM = ?, maKH = ? WHERE maHD = ?";
         String sqlBan = "UPDATE Ban SET trangThai = N'Trống' WHERE maBan = ?";
 
         Connection con = null;
@@ -338,46 +339,56 @@ public class HoaDon_DAO {
             con = ConnectDB.getConnection();
             con.setAutoCommit(false); // Bắt đầu Transaction
 
-            // 1. Cập nhật trạng thái, phương thức thanh toán, tiền giảm và mã khuyến mãi
+            // Cập nhật hóa đơn (Trạng thái, phương thức, tiền giảm, khuyến mãi và mã khách hàng)
             try (PreparedStatement stmtHD = con.prepareStatement(sqlHD)) {
                 stmtHD.setString(1, phuongThuc);
                 stmtHD.setBigDecimal(2, tienGiam != null ? tienGiam : BigDecimal.ZERO);
                 if (maKM != null && !maKM.trim().isEmpty()) {
                     stmtHD.setString(3, maKM);
                 } else {
-                    stmtHD.setNull(3, java.sql.Types.VARCHAR);
+                    stmtHD.setNull(3, Types.VARCHAR);
                 }
-                stmtHD.setString(4, maHD);
+                
+                if (maKH != null && !maKH.trim().isEmpty()) {
+                    stmtHD.setString(4, maKH);
+                } else {
+                    stmtHD.setNull(4, Types.VARCHAR);
+                }
+                
+                stmtHD.setString(5, maHD);
                 stmtHD.executeUpdate();
             }
 
-            // 2. Cập nhật trạng thái bàn về "Trống" trong CSDL
+            // Nếu có chọn khách hàng, tính số điểm được cộng
+            if (maKH != null && !maKH.trim().isEmpty() && tongTienThanhToan != null) {
+                int soDiemCong = tongTienThanhToan.divide(BigDecimal.valueOf(10000), RoundingMode.DOWN).intValue();
+                if (soDiemCong > 0) {
+                    KhachHang kh = new KhachHang();
+                    kh.setMaKH(maKH);
+                    kh.congDiem(soDiemCong);
+                }
+            }
+
+            // Cập nhật trạng thái bàn về "Trống"
             if (maBan != null && !maBan.trim().isEmpty()) {
-                String cleanMaBan = maBan.trim();
                 try (PreparedStatement stmtBan = con.prepareStatement(sqlBan)) {
-                    stmtBan.setString(1, cleanMaBan);
+                    stmtBan.setString(1, maBan.trim());
                     stmtBan.executeUpdate();
                 }
             }
 
-            con.commit(); // Xác nhận lưu thay đổi xuống CSDL
+            con.commit(); // Xác nhận lưu toàn bộ Transaction thành công
             return true;
             
         } catch (SQLException e) {
             e.printStackTrace();
             if (con != null) {
-                try { 
-                    con.rollback(); 
-                } catch (SQLException ex) { 
-                    ex.printStackTrace(); 
-                }
+                try { con.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
             }
             return false;
         } finally {
             try {
-                if (con != null) {
-                    con.setAutoCommit(true);
-                }
+                if (con != null) { con.setAutoCommit(true); }
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -401,8 +412,8 @@ public class HoaDon_DAO {
 
         try (PreparedStatement stmt = con.prepareStatement(sql)) {
 
-            stmt.setDate(1, java.sql.Date.valueOf(tuNgay));
-            stmt.setDate(2, java.sql.Date.valueOf(denNgay));
+            stmt.setDate(1, Date.valueOf(tuNgay));
+            stmt.setDate(2, Date.valueOf(denNgay));
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {

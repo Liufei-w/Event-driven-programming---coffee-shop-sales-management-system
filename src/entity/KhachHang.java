@@ -37,9 +37,16 @@ public class KhachHang {
     public void setSoDienThoai(String soDienThoai) {
         this.soDienThoai = soDienThoai;
     }
+    
+    public void congDiem(int soDiemThem) {
+        System.out.println("Đã cộng " + soDiemThem + " điểm cho khách hàng: " + tenKH);
+    }
 
     @Override
     public String toString() {
-        return "KhachHang{" + "maKH='" + maKH + '\'' + ", tenKH='" + tenKH + '\'' + '}';
+        if (maKH == null) {
+            return tenKH;
+        }
+        return tenKH + " (" + (soDienThoai != null ? soDienThoai : maKH) + ")";
     }
 }
