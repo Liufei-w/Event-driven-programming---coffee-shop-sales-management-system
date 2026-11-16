@@ -22,7 +22,7 @@ public class main extends JFrame {
 
     public main() {
         setTitle("Hệ Thống Quản Lý Quán Cà Phê - Evergreen");
-        setSize(1300, 750);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
