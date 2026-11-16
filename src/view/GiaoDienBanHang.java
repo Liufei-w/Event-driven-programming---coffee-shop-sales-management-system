@@ -4,19 +4,24 @@ import connectDB.ConnectDB;
 import dao.Ban_DAO;
 import dao.ChiTietHoaDon_DAO;
 import dao.HoaDon_DAO;
+import dao.KhachHang_DAO;
 import dao.KhuyenMai_DAO;
 import dao.LoaiMon_DAO;
 import dao.Mon_DAO;
 import entity.Ban;
 import entity.ChiTietHoaDon;
 import entity.HoaDon;
+import entity.KhachHang;
 import entity.KhuyenMai;
 import entity.LoaiMon;
 import entity.Mon;
 import entity.NhanVien;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -24,20 +29,21 @@ import java.util.List;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
-public class GiaoDienBanHang extends JPanel implements ActionListener {
+public class GiaoDienBanHang extends JPanel implements ActionListener, MouseListener {
     private JPanel pnlSoDoBan;
     private JComboBox<String> cboLoaiMon;
-    private JPanel pnlDanhSachMon;
-
+    
+    private JTable tblThucDon;
+    private DefaultTableModel modelTableThucDon;
+    private JTextField txtTimKiemMon;
+    private JButton btnTimKiemMon;
     private JTable tblChiTietHoaDon;
     private DefaultTableModel modelTableCTHD;
     private JLabel lblMaHD;
     private JLabel lblTenBan;
     private JLabel lblTongTien;
-    private JLabel lblMonDangChon;
-    private JTextField txtGhiChu;
-    private JSpinner spnSoLuong;
-    private JButton btnThemMon;
+    private JComboBox<KhuyenMai> cboKhuyenMai;
+    private JComboBox<KhachHang> cboKhachHang;
     private JButton btnXoaMon;
     private JButton btnThanhToan;
     private JButton btnInHoaDon;
@@ -48,11 +54,9 @@ public class GiaoDienBanHang extends JPanel implements ActionListener {
     private HoaDon_DAO hoaDonDAO;
     private ChiTietHoaDon_DAO chiTietHoaDonDAO;
     private KhuyenMai_DAO khuyenMaiDAO;
-    
-    private JComboBox<KhuyenMai> cboKhuyenMai;
+    private KhachHang_DAO khachHangDAO;
     
     private Ban banDangChon = null;
-    private Mon monDangChon = null; 
 
     public GiaoDienBanHang() {
         try {
@@ -67,11 +71,12 @@ public class GiaoDienBanHang extends JPanel implements ActionListener {
         hoaDonDAO = new HoaDon_DAO();
         chiTietHoaDonDAO = new ChiTietHoaDon_DAO();
         khuyenMaiDAO = new KhuyenMai_DAO();
+        khachHangDAO = new KhachHang_DAO();
 
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // 1. BÊN TRÁI: SƠ ĐỒ BÀN
+        // SƠ ĐỒ BÀN
         JPanel pnlTrai = new JPanel(new BorderLayout(5, 5));
         pnlTrai.setBorder(BorderFactory.createTitledBorder("1. Sơ đồ bàn"));
         pnlTrai.setPreferredSize(new Dimension(260, 0));
@@ -80,26 +85,46 @@ public class GiaoDienBanHang extends JPanel implements ActionListener {
         pnlTrai.add(new JScrollPane(pnlSoDoBan), BorderLayout.CENTER);
         add(pnlTrai, BorderLayout.WEST);
 
-        // 2. Ở GIỮA: THỰC ĐƠN MÓN NƯỚC
+        //THỰC ĐƠN MÓN NƯỚC
         JPanel pnlGiua = new JPanel(new BorderLayout(5, 5));
         pnlGiua.setBorder(BorderFactory.createTitledBorder("2. Thực đơn món nước"));
 
-        JPanel pnlLocLoai = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        pnlLocLoai.add(new JLabel("Chọn danh mục:"));
+        JPanel pnlLocMon = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
+        pnlLocMon.add(new JLabel("Danh mục:"));
         cboLoaiMon = new JComboBox<>();
-        pnlLocLoai.add(cboLoaiMon);
-        pnlGiua.add(pnlLocLoai, BorderLayout.NORTH);
+        cboLoaiMon.setPreferredSize(new Dimension(120, 25));
+        pnlLocMon.add(cboLoaiMon);
 
-        pnlDanhSachMon = new JPanel(new GridLayout(0, 3, 5, 5));
-        pnlGiua.add(new JScrollPane(pnlDanhSachMon), BorderLayout.CENTER);
+        pnlLocMon.add(new JLabel("Tìm món:"));
+        txtTimKiemMon = new JTextField(9);
+        pnlLocMon.add(txtTimKiemMon);
+        
+        btnTimKiemMon = new JButton("Tìm");
+        pnlLocMon.add(btnTimKiemMon);
+
+        pnlGiua.add(pnlLocMon, BorderLayout.NORTH);
+
+        // Bảng danh sách thực đơn 
+        String[] colThucDon = {"Mã món", "Tên món", "Đơn giá", "SL", "Thao tác"};
+        modelTableThucDon = new DefaultTableModel(colThucDon, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return column == 3;
+            }
+        };
+        tblThucDon = new JTable(modelTableThucDon);
+        tblThucDon.setRowHeight(28);
+        tblThucDon.addMouseListener(this);
+        
+        pnlGiua.add(new JScrollPane(tblThucDon), BorderLayout.CENTER);
         add(pnlGiua, BorderLayout.CENTER);
 
-        // 3. BÊN PHẢI: CHI TIẾT HÓA ĐƠN & THANH TOÁN
+        //CHI TIẾT HÓA ĐƠN & THANH TOÁN
         JPanel pnlPhai = new JPanel(new BorderLayout(5, 5));
         pnlPhai.setBorder(BorderFactory.createTitledBorder("3. Chi tiết hóa đơn"));
-        pnlPhai.setPreferredSize(new Dimension(420, 0));
+        pnlPhai.setPreferredSize(new Dimension(440, 0));
 
-        JPanel pnlThongTinHD = new JPanel(new GridLayout(2, 1, 3, 3));
+        JPanel pnlThongTinHD = new JPanel(new GridLayout(3, 1, 3, 3));
         pnlThongTinHD.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         
         JPanel pnlDong1 = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
@@ -116,53 +141,36 @@ public class GiaoDienBanHang extends JPanel implements ActionListener {
         lblTenBan.setForeground(Color.RED);
         pnlDong2.add(lblTenBan);
 
+        JPanel pnlDong3 = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        pnlDong3.add(new JLabel("Khách hàng: "));
+        cboKhachHang = new JComboBox<>();
+        cboKhachHang.setPreferredSize(new Dimension(280, 24));
+        pnlDong3.add(cboKhachHang);
+
         pnlThongTinHD.add(pnlDong1);
         pnlThongTinHD.add(pnlDong2);
+        pnlThongTinHD.add(pnlDong3);
         pnlPhai.add(pnlThongTinHD, BorderLayout.NORTH);
 
         String[] columnNames = {"Tên món", "SL", "Đơn giá", "Thành tiền"};
         modelTableCTHD = new DefaultTableModel(columnNames, 0);
         tblChiTietHoaDon = new JTable(modelTableCTHD);
+        tblChiTietHoaDon.setRowHeight(24);
         pnlPhai.add(new JScrollPane(tblChiTietHoaDon), BorderLayout.CENTER);
 
         JPanel pnlSouthPhai = new JPanel();
         pnlSouthPhai.setLayout(new BoxLayout(pnlSouthPhai, BoxLayout.Y_AXIS));
         pnlSouthPhai.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-        JPanel pnlDongNhap = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
-        pnlDongNhap.add(new JLabel("SL:"));
-        spnSoLuong = new JSpinner(new SpinnerNumberModel(1, 1, 100, 1));
-        pnlDongNhap.add(spnSoLuong);
-        pnlDongNhap.add(new JLabel("Ghi chú:"));
-        txtGhiChu = new JTextField(8);
-        pnlDongNhap.add(txtGhiChu);
-        
-        btnThemMon = new JButton("Thêm Món");
-        btnThemMon.setFont(new Font("Arial", Font.BOLD, 12));
-        btnThemMon.setBackground(new Color(70, 130, 180));
-        btnThemMon.setForeground(Color.WHITE);
-        btnThemMon.setPreferredSize(new Dimension(105, 32));
-        pnlDongNhap.add(btnThemMon);
-        pnlSouthPhai.add(pnlDongNhap);
-
-        JPanel pnlDongThongBaoChonMon = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 2));
-        pnlDongThongBaoChonMon.add(new JLabel("Đang chọn: "));
-        lblMonDangChon = new JLabel("Chưa chọn món nào");
-        lblMonDangChon.setFont(new Font("Arial", Font.ITALIC | Font.BOLD, 12));
-        lblMonDangChon.setForeground(new Color(180, 0, 0));
-        pnlDongThongBaoChonMon.add(lblMonDangChon);
-        pnlSouthPhai.add(pnlDongThongBaoChonMon);
-
         JPanel pnlDongXoa = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 5));
-        btnXoaMon = new JButton("Xóa dòng chọn");
+        btnXoaMon = new JButton("Xóa món đã chọn");
         pnlDongXoa.add(btnXoaMon);
         pnlSouthPhai.add(pnlDongXoa);
 
-        // Panel chọn Khuyến mãi
         JPanel pnlDongKM = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
         pnlDongKM.add(new JLabel("Khuyến mãi:"));
         cboKhuyenMai = new JComboBox<>();
-        cboKhuyenMai.setPreferredSize(new Dimension(300, 28));
+        cboKhuyenMai.setPreferredSize(new Dimension(320, 28));
         pnlDongKM.add(cboKhuyenMai);
         pnlSouthPhai.add(pnlDongKM); 
 
@@ -191,24 +199,24 @@ public class GiaoDienBanHang extends JPanel implements ActionListener {
         pnlPhai.add(pnlSouthPhai, BorderLayout.SOUTH);
         add(pnlPhai, BorderLayout.EAST);
 
-        // Nạp dữ liệu ban đầu
+        // Nạp dữ liệu
         napDanhSachBan();
         napDanhMucLoaiMon();
-        napDanhSachMon(null);
+        napDanhSachThucDon(null);
         napDanhSachKhuyenMai();
+        napDanhSachKhachHang();
 
         // Đăng ký sự kiện
         cboLoaiMon.addActionListener(this);
         cboKhuyenMai.addActionListener(this);
-        btnThemMon.addActionListener(this);
+        btnTimKiemMon.addActionListener(this);
+        txtTimKiemMon.addActionListener(this);
         btnXoaMon.addActionListener(this);
         btnThanhToan.addActionListener(this);
         btnInHoaDon.addActionListener(this);
     }
 
-    // =============
-    // CÁC HÀM XỬ LÝ 
-    // =============
+    // CÁC HÀM NẠP DỮ LIỆU
 
     private void napDanhSachBan() {
         pnlSoDoBan.removeAll();
@@ -242,8 +250,8 @@ public class GiaoDienBanHang extends JPanel implements ActionListener {
         }
     }
 
-    private void napDanhSachMon(String tenLoai) {
-        pnlDanhSachMon.removeAll();
+    private void napDanhSachThucDon(String tenLoai) {
+        modelTableThucDon.setRowCount(0);
         List<Mon> dsMon;
         if (tenLoai == null || tenLoai.equals("Tất cả")) {
             dsMon = monDAO.layTatCaMon();
@@ -252,18 +260,18 @@ public class GiaoDienBanHang extends JPanel implements ActionListener {
         }
 
         for (Mon m : dsMon) {
-            JButton btnMon = new JButton("<html><center><b>" + m.getTenMon() + "</b><br>" + m.getDonGia() + " đ</center></html>");
-            btnMon.setName(m.getMaMon()); 
-            btnMon.addActionListener(this);
-            pnlDanhSachMon.add(btnMon);
+            modelTableThucDon.addRow(new Object[]{
+                m.getMaMon(),
+                m.getTenMon(),
+                String.format("%,.0f đ", m.getDonGia()),
+                1,                   
+                "[ THÊM ]"    
+            });
         }
-        pnlDanhSachMon.revalidate();
-        pnlDanhSachMon.repaint();
     }
-    
+
     private void napDanhSachKhuyenMai() {
         if (cboKhuyenMai == null) return;
-        
         cboKhuyenMai.removeActionListener(this); 
         cboKhuyenMai.removeAllItems();
         
@@ -280,8 +288,24 @@ public class GiaoDienBanHang extends JPanel implements ActionListener {
         for (KhuyenMai km : dsKM) {
             cboKhuyenMai.addItem(km);
         }
-
         cboKhuyenMai.addActionListener(this); 
+    }
+
+    private void napDanhSachKhachHang() {
+        if (cboKhachHang == null) return;
+        cboKhachHang.removeAllItems();
+        
+        KhachHang khVangLai = new KhachHang(null, "Khách vãng lai (Không tích điểm)", null);
+        cboKhachHang.addItem(khVangLai);
+
+        try {
+            List<KhachHang> dsKH = khachHangDAO.layTatCaKhachHang();
+            for (KhachHang kh : dsKH) {
+                cboKhachHang.addItem(kh);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void tinhTongTien() {
@@ -291,7 +315,7 @@ public class GiaoDienBanHang extends JPanel implements ActionListener {
         }
 
         BigDecimal tienGiamGia = BigDecimal.ZERO;
-        if (cboKhuyenMai != null && cboKhuyenMai.getSelectedItem() instanceof KhuyenMai) {
+        if (cboKhuyenMai != null && cboKhuyenMai.getSelectedIndex() > 0) {
             KhuyenMai km = (KhuyenMai) cboKhuyenMai.getSelectedItem();
             if (km != null && km.getPhanTramGiam() != null) {
                 tienGiamGia = tongChuaVAT.multiply(km.getPhanTramGiam());
@@ -305,16 +329,27 @@ public class GiaoDienBanHang extends JPanel implements ActionListener {
         lblTongTien.setText(String.format("%,.0f VNĐ", tongThanhToan));
     }
 
+    //XỬ LÝ SỰ KIỆN
+
     @Override
     public void actionPerformed(ActionEvent e) {
         Object o = e.getSource();
 
         if (o.equals(cboLoaiMon)) {
-            napDanhSachMon((String) cboLoaiMon.getSelectedItem());
+            napDanhSachThucDon((String) cboLoaiMon.getSelectedItem());
         } else if (o.equals(cboKhuyenMai)) {
             tinhTongTien();
-        } else if (o.equals(btnThemMon)) {
-            xuLyThemMon();
+        } else if (o.equals(btnTimKiemMon) || o.equals(txtTimKiemMon)) {
+            String keyword = txtTimKiemMon.getText().trim().toLowerCase();
+            modelTableThucDon.setRowCount(0);
+            List<Mon> dsMon = monDAO.layTatCaMon();
+            for (Mon m : dsMon) {
+                if (m.getTenMon().toLowerCase().contains(keyword) || m.getMaMon().toLowerCase().contains(keyword)) {
+                    modelTableThucDon.addRow(new Object[]{
+                        m.getMaMon(), m.getTenMon(), String.format("%,.0f đ", m.getDonGia()), 1, "[ + Thêm ]"
+                    });
+                }
+            }
         } else if (o.equals(btnXoaMon)) {
             xuLyXoaMon();
         } else if (o.equals(btnThanhToan)) {
@@ -324,24 +359,40 @@ public class GiaoDienBanHang extends JPanel implements ActionListener {
         } else if (o instanceof JButton) {
             JButton btn = (JButton) o;
             String cmd = btn.getActionCommand();
-
             if (cmd != null && cmd.startsWith("BAN_")) {
                 xuLyChonBan(cmd.substring(4));
-            } else if (btn.getName() != null && !btn.getName().isEmpty()) {
-                xuLyChonMon(btn.getName());
             }
         }
     }
 
-    private void xuLyThemMon() {
+    @Override
+    public void mouseClicked(MouseEvent e) {
+        int row = tblThucDon.getSelectedRow();
+        int col = tblThucDon.getSelectedColumn();
+        if (row != -1 && col == 4) {
+            int soLuongThem = 1;
+            try {
+                soLuongThem = Integer.parseInt(modelTableThucDon.getValueAt(row, 3).toString());
+                if (soLuongThem <= 0) soLuongThem = 1;
+            } catch (Exception ex) {
+                soLuongThem = 1;
+            }
+            themMonVaoHoaDon(row, soLuongThem);
+        }
+    }
+
+    private void themMonVaoHoaDon(int row, int soLuongThem) {
         if (banDangChon == null) {
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn bàn trước khi thêm món!");
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn bàn ở sơ đồ bên trái trước khi thêm món!");
             return;
         }
-        if (monDangChon == null) {
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn món ở thực đơn trước!");
-            return;
-        }
+
+        String maMon = modelTableThucDon.getValueAt(row, 0).toString();
+        String tenMon = modelTableThucDon.getValueAt(row, 1).toString();
+
+        Mon mon = monDAO.layMonTheoMa(maMon);
+        if (mon == null) return;
+        BigDecimal donGia = mon.getDonGia();
 
         String maHD = lblMaHD.getText();
         if (maHD == null || maHD.equals("---")) {
@@ -354,19 +405,6 @@ public class GiaoDienBanHang extends JPanel implements ActionListener {
                 hd.setNgayLap(LocalDateTime.now());
                 hd.setTrangThai("Chưa thanh toán");
                 hd.setPhuongThucThanhToan("Tiền mặt");
-                
-                KhuyenMai selectedKM = (KhuyenMai) cboKhuyenMai.getSelectedItem();
-                if (selectedKM != null && selectedKM.getMaKM() != null) {
-                    hd.setKhuyenMai(selectedKM);
-                    BigDecimal tongChuaVAT = BigDecimal.ZERO;
-                    for (int i = 0; i < modelTableCTHD.getRowCount(); i++) {
-                        tongChuaVAT = tongChuaVAT.add(new BigDecimal(modelTableCTHD.getValueAt(i, 3).toString()));
-                    }
-                    hd.setTienGiam(tongChuaVAT.multiply(selectedKM.getPhanTramGiam()));
-                } else {
-                    hd.setTienGiam(BigDecimal.ZERO);
-                }
-
                 hd.setThueVAT(BigDecimal.valueOf(0.10));
                 
                 Ban ban = new Ban();
@@ -388,23 +426,18 @@ public class GiaoDienBanHang extends JPanel implements ActionListener {
             napDanhSachBan(); 
         }
 
-        int soLuongThem = (int) spnSoLuong.getValue();
-        BigDecimal donGia = monDangChon.getDonGia();
-
-        // 1. Lưu xuống CSDL (Đã có logic tự động cộng dồn trong DAO)
-        boolean kqLuu = chiTietHoaDonDAO.themChiTietHoaDon(maHD, monDangChon.getMaMon(), soLuongThem, donGia);
+        // Lưu xuống CSDL
+        boolean kqLuu = chiTietHoaDonDAO.themChiTietHoaDon(maHD, maMon, soLuongThem, donGia);
         
         if (kqLuu) {
-            // 2. Kiểm tra xem trên bảng JTable đã có món này chưa, nếu có rồi thì cộng dồn số lượng trực tiếp trên UI
             boolean daCoTrenBang = false;
             for (int i = 0; i < modelTableCTHD.getRowCount(); i++) {
                 String tenMonInRow = modelTableCTHD.getValueAt(i, 0).toString();
-                if (tenMonInRow.equals(monDangChon.getTenMon())) {
+                if (tenMonInRow.equals(tenMon)) {
                     int slCu = Integer.parseInt(modelTableCTHD.getValueAt(i, 1).toString());
                     int slMoi = slCu + soLuongThem;
                     BigDecimal thanhTienMoi = donGia.multiply(BigDecimal.valueOf(slMoi));
                     
-                    // Cập nhật lại giá trị trên dòng đó
                     modelTableCTHD.setValueAt(slMoi, i, 1);
                     modelTableCTHD.setValueAt(thanhTienMoi, i, 3);
                     daCoTrenBang = true;
@@ -412,16 +445,15 @@ public class GiaoDienBanHang extends JPanel implements ActionListener {
                 }
             }
 
-            // Nếu chưa có trên bảng thì thêm dòng mới bình thường
             if (!daCoTrenBang) {
                 BigDecimal thanhTien = donGia.multiply(BigDecimal.valueOf(soLuongThem));
-                modelTableCTHD.addRow(new Object[]{monDangChon.getTenMon(), soLuongThem, donGia, thanhTien});
+                modelTableCTHD.addRow(new Object[]{tenMon, soLuongThem, donGia, thanhTien});
             }
 
             tinhTongTien();
             napDanhSachKhuyenMai(); 
         } else {
-            JOptionPane.showMessageDialog(this, "Lưu chi tiết hóa đơn vào CSDL thất bại!");
+            JOptionPane.showMessageDialog(this, "Thêm món thất bại!");
         }
     }
 
@@ -432,7 +464,7 @@ public class GiaoDienBanHang extends JPanel implements ActionListener {
             tinhTongTien();
             napDanhSachKhuyenMai(); 
         } else {
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn dòng món cần xóa trong bảng!");
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn dòng món cần xóa trong bảng hóa đơn!");
         }
     }
 
@@ -446,7 +478,6 @@ public class GiaoDienBanHang extends JPanel implements ActionListener {
             return;
         }
 
-        // 1. Tính lại tiền giảm từ ComboBox khuyến mãi đang chọn
         BigDecimal tienGiam = BigDecimal.ZERO;
         String maKM = null;
 
@@ -454,8 +485,6 @@ public class GiaoDienBanHang extends JPanel implements ActionListener {
             KhuyenMai km = (KhuyenMai) cboKhuyenMai.getSelectedItem();
             if (km != null && km.getMaKM() != null && !km.getMaKM().trim().isEmpty()) {
                 maKM = km.getMaKM();
-                
-                // Tính lại số tiền giảm chính xác dựa trên tổng tiền chưa VAT hiện tại
                 BigDecimal tongChuaVAT = BigDecimal.ZERO;
                 for (int i = 0; i < modelTableCTHD.getRowCount(); i++) {
                     tongChuaVAT = tongChuaVAT.add(new BigDecimal(modelTableCTHD.getValueAt(i, 3).toString()));
@@ -466,20 +495,32 @@ public class GiaoDienBanHang extends JPanel implements ActionListener {
             }
         }
 
-        boolean kq = hoaDonDAO.thanhToanHoaDon(lblMaHD.getText(), "Tiền mặt", banDangChon.getMaBan(), tienGiam, maKM);
+        String maKH = null;
+        if (cboKhachHang != null && cboKhachHang.getSelectedIndex() > 0) {
+            KhachHang selectedKH = (KhachHang) cboKhachHang.getSelectedItem();
+            if (selectedKH != null && selectedKH.getMaKH() != null) {
+                maKH = selectedKH.getMaKH();
+            }
+        }
+
+        BigDecimal tongChuaVAT = BigDecimal.ZERO;
+        for (int i = 0; i < modelTableCTHD.getRowCount(); i++) {
+            tongChuaVAT = tongChuaVAT.add(new BigDecimal(modelTableCTHD.getValueAt(i, 3).toString()));
+        }
+        BigDecimal tongThanhToan = (tongChuaVAT.subtract(tienGiam)).multiply(BigDecimal.valueOf(1.10));
+
+        boolean kq = hoaDonDAO.thanhToanHoaDon(lblMaHD.getText(), "Tiền mặt", banDangChon.getMaBan(), tienGiam, maKM, maKH, tongThanhToan);
         
         if (kq) {
-            JOptionPane.showMessageDialog(this, "Thanh toán thành công!");
+            JOptionPane.showMessageDialog(this, "Thanh toán thành công! Khách hàng đã được cộng điểm tích lũy (nếu có).");
             modelTableCTHD.setRowCount(0);
             lblTongTien.setText("0 VNĐ");
             lblTenBan.setText("Chưa chọn bàn");
             lblMaHD.setText("---");
-            lblMonDangChon.setText("Chưa chọn món nào");
-            lblMonDangChon.setForeground(new Color(180, 0, 0));
             banDangChon = null;
-            monDangChon = null;
             napDanhSachBan();
             napDanhSachKhuyenMai();
+            napDanhSachKhachHang();
         } else {
             JOptionPane.showMessageDialog(this, "Thanh toán thất bại, vui lòng thử lại!");
         }
@@ -531,8 +572,6 @@ public class GiaoDienBanHang extends JPanel implements ActionListener {
                     lblMaHD.setText("---");
                     modelTableCTHD.setRowCount(0);
                     lblTongTien.setText("0 VNĐ");
-                    txtGhiChu.setText("");
-                    spnSoLuong.setValue(1);
                     napDanhSachKhuyenMai();
                 }
                 break;
@@ -540,11 +579,15 @@ public class GiaoDienBanHang extends JPanel implements ActionListener {
         }
     }
 
-    private void xuLyChonMon(String maMon) {
-        monDangChon = monDAO.layMonTheoMa(maMon);
-        if (monDangChon != null) {
-            lblMonDangChon.setText(monDangChon.getTenMon() + " (" + String.format("%,.0f", monDangChon.getDonGia()) + "đ)");
-            lblMonDangChon.setForeground(new Color(0, 102, 204));
-        }
-    }
+    @Override
+    public void mousePressed(MouseEvent e) {}
+
+    @Override
+    public void mouseReleased(MouseEvent e) {}
+
+    @Override
+    public void mouseEntered(MouseEvent e) {}
+
+    @Override
+    public void mouseExited(MouseEvent e) {}
 }
