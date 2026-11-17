@@ -13,7 +13,8 @@ import java.util.Locale;
 
 public class DialogInHoaDon extends JDialog {
     private JTextPane txtPaneHoaDon;
-    private JButton btnInNgay, btnDong;
+    private JButton btnInNgay;
+    private JButton btnDong;
 
     public DialogInHoaDon(JFrame parent, HoaDon hd) {
         super(parent, "Xem trước hóa đơn", true);
@@ -21,7 +22,6 @@ public class DialogInHoaDon extends JDialog {
         setLocationRelativeTo(parent);
         setLayout(new BorderLayout(10, 10));
 
-        // TextPane hiển thị hóa đơn dạng HTML
         txtPaneHoaDon = new JTextPane();
         txtPaneHoaDon.setContentType("text/html");
         txtPaneHoaDon.setEditable(false);
@@ -30,7 +30,6 @@ public class DialogInHoaDon extends JDialog {
         JScrollPane scrollPane = new JScrollPane(txtPaneHoaDon);
         add(scrollPane, BorderLayout.CENTER);
 
-        // Panel nút bấm
         JPanel pnlBottom = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         btnInNgay = new JButton("In Hóa Đơn");
         btnInNgay.setBackground(new Color(46, 139, 87));
@@ -41,7 +40,7 @@ public class DialogInHoaDon extends JDialog {
         pnlBottom.add(btnDong);
         add(pnlBottom, BorderLayout.SOUTH);
 
-        // Sự kiện in hoặc xuất PDF qua Microsoft Print to PDF
+        //in hoặc xuất PDF qua Microsoft Print to PDF
         btnInNgay.addActionListener(e -> {
             try {
                 boolean complete = txtPaneHoaDon.print();
@@ -59,7 +58,7 @@ public class DialogInHoaDon extends JDialog {
     }
 
     /**
-     * Tạo nội dung HTML chuyên nghiệp cho hóa đơn quán cà phê
+     * Tạo nội dung HTML
      */
     private String taoNoiDungHTML(HoaDon hd) {
         NumberFormat nf = NumberFormat.getInstance(new Locale("vi", "VN"));
@@ -71,7 +70,7 @@ public class DialogInHoaDon extends JDialog {
         // Header
         html.append("<div style='text-align: center;'>");
         html.append("<h2 style='margin-bottom: 2px;'>QUÁN CÀ PHÊ EVERGREEN</h2>");
-        html.append("<p style='margin-top: 0; font-size: 11px;'>ĐC: 12 Nguyễn Văn Bảo, Gò Vấp, TP.HCM<br>ĐT: 0901234567</p>");
+        html.append("<p style='margin-top: 0; font-size: 11px;'>ĐC: 965/65 Quang Trung, Gò Vấp, TP.HCM<br>ĐT: 0901234567</p>");
         html.append("<hr style='border: dashed 1px #ccc;'>");
         html.append("<h3>HÓA ĐƠN THANH TOÁN</h3>");
         html.append("</div>");
@@ -94,7 +93,7 @@ public class DialogInHoaDon extends JDialog {
         BigDecimal tongTienMon = BigDecimal.ZERO;
         if (hd.getDanhSachChiTiet() != null) {
             for (ChiTietHoaDon cthd : hd.getDanhSachChiTiet()) {
-                BigDecimal thanhTien = cthd.getThanhTien(); // Tận dụng hàm trong ChiTietHoaDon entity
+                BigDecimal thanhTien = cthd.getThanhTien();
                 tongTienMon = tongTienMon.add(thanhTien);
                 
                 html.append("<tr>");
@@ -108,7 +107,7 @@ public class DialogInHoaDon extends JDialog {
         html.append("</table>");
         html.append("<hr style='border: dashed 1px #ccc;'>");
 
-        // Sử dụng các phương thức tính toán từ Entity HoaDon để đồng bộ dữ liệu chuẩn 100%
+        // Sử dụng các phương thức tính toán từ Entity HoaDon
         BigDecimal tienGiam = hd.getTienGiam() != null ? hd.getTienGiam() : BigDecimal.ZERO;
         BigDecimal thueVAT = hd.getThueVAT() != null ? hd.getThueVAT() : BigDecimal.valueOf(0.10);
         BigDecimal tongThanhToan = hd.getTongTien();

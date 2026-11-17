@@ -503,11 +503,20 @@ public class GiaoDienBanHang extends JPanel implements ActionListener, MouseList
             }
         }
 
-        BigDecimal tongChuaVAT = BigDecimal.ZERO;
-        for (int i = 0; i < modelTableCTHD.getRowCount(); i++) {
-            tongChuaVAT = tongChuaVAT.add(new BigDecimal(modelTableCTHD.getValueAt(i, 3).toString()));
+     // Tạo đối tượng hóa đơn để tính tổng tiền
+        HoaDon hd = hoaDonDAO.layHoaDonTheoMa(lblMaHD.getText());
+
+        if (hd == null) {
+            JOptionPane.showMessageDialog(this, "Không tìm thấy hóa đơn!");
+            return;
         }
-        BigDecimal tongThanhToan = (tongChuaVAT.subtract(tienGiam)).multiply(BigDecimal.valueOf(1.10));
+
+        // Cập nhật tiền giảm và VAT
+        hd.setTienGiam(tienGiam);
+        hd.setThueVAT(BigDecimal.valueOf(0.10));
+
+        // Tính tổng tiền thông qua Entity HoaDon
+        BigDecimal tongThanhToan = hd.getTongTien();
 
         boolean kq = hoaDonDAO.thanhToanHoaDon(lblMaHD.getText(), "Tiền mặt", banDangChon.getMaBan(), tienGiam, maKM, maKH, tongThanhToan);
         
